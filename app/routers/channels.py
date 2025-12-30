@@ -357,25 +357,24 @@ async def preview_channel(
     if not measurement:
         raise HTTPException(status_code=404, detail="Aucune mesure disponible")
 
-    # Calculer l'âge de la mesure
-    now = datetime.datetime.now(datetime.timezone.utc)
+    # Calculer l'âge de la mesure pour l'affichage
+    now = datetime.datetime.utcnow()  # Sans timezone pour cohérence
     measurement_age = now - measurement.measurement_at
     measurement_age_minutes = int(measurement_age.total_seconds() / 60)
 
-    # Préparer les variables pour le template
-    template_vars = {
-        "station_name": channel.name,
-        "wind_avg_kmh": round(measurement.wind_avg_kmh),
-        "wind_max_kmh": round(measurement.wind_max_kmh),
-        "wind_direction_cardinal": measurement.wind_direction_cardinal,
-        "wind_direction_name": measurement.wind_direction_name,
-        "measurement_age_minutes": measurement_age_minutes,
-    }
-
-    # Rendre le template
+    # Rendre le template avec la nouvelle signature
+    # Note: measurement_at sera utilisé par le renderer pour calculer l'âge
     try:
         renderer = TemplateRenderer()
-        rendered_text = renderer.render(channel.template_text, template_vars)
+        rendered_text = renderer.render(
+            template=channel.template_text,
+            station_name=channel.name,
+            wind_avg_kmh=measurement.wind_avg_kmh,
+            wind_max_kmh=measurement.wind_max_kmh,
+            wind_min_kmh=measurement.wind_min_kmh,
+            wind_direction_deg=measurement.wind_direction,
+            measurement_at=measurement.measurement_at,
+        )
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur rendu template: {str(e)}")
 
