@@ -172,7 +172,7 @@ class OpenWindMapProvider(WeatherProvider):
                 "status": {...}
             }
         }
-        
+
         Ou format bulk:
         {
             "id": 385,
@@ -198,7 +198,9 @@ class OpenWindMapProvider(WeatherProvider):
                 return None
 
             # Convertir la date (peut être dans data ou measurements)
-            date_str = data.get("date") or measurements.get("date") or data.get("measured_at")
+            date_str = (
+                data.get("date") or measurements.get("date") or data.get("measured_at")
+            )
             if date_str:
                 # Gérer différents formats ISO
                 measurement_at = datetime.fromisoformat(date_str.replace("Z", "+00:00"))

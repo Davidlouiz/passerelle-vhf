@@ -97,23 +97,23 @@ async function synthesizeAndPlay() {
         }
 
         const result = await response.json();
-        
+
         // Afficher le lecteur audio
         const audioPlayer = document.getElementById('audio-player');
         const audioElement = document.getElementById('audio-element');
-        
+
         audioElement.src = result.audio_url;
         audioPlayer.style.display = 'block';
-        
+
         // Stocker la référence pour pouvoir arrêter
         currentAudio = audioElement;
-        
+
         // Jouer automatiquement
         audioElement.play();
-        
+
         // Afficher le bouton stop
         stopBtn.style.display = 'inline-block';
-        
+
         // Masquer le bouton stop quand l'audio se termine
         audioElement.onended = () => {
             stopBtn.style.display = 'none';
@@ -154,7 +154,7 @@ function stopAudio() {
 function loadExample(button) {
     const text = button.textContent.trim();
     document.getElementById('text-input').value = text;
-    
+
     // Animation visuelle
     button.style.background = '#d4edda';
     setTimeout(() => {
@@ -211,7 +211,7 @@ function checkAuth() {
  */
 document.addEventListener('DOMContentLoaded', () => {
     if (!checkAuth()) return;
-    
+
     loadVoices();
 
     // Gérer la touche Entrée (avec Ctrl/Cmd) pour synthétiser

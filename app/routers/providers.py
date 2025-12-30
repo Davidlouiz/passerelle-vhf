@@ -64,7 +64,8 @@ def list_providers(
             name="FFVL (Fédération Française de Vol Libre)",
             requires_auth=True,
             description="Accès aux balises météo FFVL via balisemeteo.com",
-            is_configured="ffvl" in credentials and bool(credentials["ffvl"].credentials_json.get("api_key")),
+            is_configured="ffvl" in credentials
+            and bool(credentials["ffvl"].credentials_json.get("api_key")),
         ),
         ProviderInfo(
             provider_id="openwindmap",
@@ -207,7 +208,9 @@ async def test_measurement(
     # Récupérer le provider
     provider = provider_manager.get_provider(data.provider_id)
     if not provider:
-        raise HTTPException(status_code=400, detail=f"Provider {data.provider_id} inconnu")
+        raise HTTPException(
+            status_code=400, detail=f"Provider {data.provider_id} inconnu"
+        )
 
     # Récupérer la mesure
     try:
@@ -227,4 +230,6 @@ async def test_measurement(
         )
 
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la récupération: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erreur lors de la récupération: {str(e)}"
+        )

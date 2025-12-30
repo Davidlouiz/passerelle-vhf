@@ -37,6 +37,7 @@ async def startup_event():
     init_db()
     # Initialiser le moteur TTS en arrière-plan pour éviter de bloquer le démarrage
     from app.routers.tts import init_tts_engine
+
     try:
         init_tts_engine()
     except Exception as e:

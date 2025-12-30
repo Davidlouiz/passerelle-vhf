@@ -30,6 +30,7 @@ class PiperEngine(TTSEngine):
         """
         if models_dir is None:
             from app.database import DATA_DIR
+
             models_dir = DATA_DIR / "tts_models"
 
         self.models_dir = Path(models_dir)
@@ -47,6 +48,7 @@ class PiperEngine(TTSEngine):
         """Récupère la version de Piper installée."""
         try:
             import piper
+
             return getattr(piper, "__version__", "1.3.0")
         except Exception:
             return "unknown"
@@ -116,7 +118,9 @@ class PiperEngine(TTSEngine):
         Utilise piper-tts avec synthesize_wav() qui nécessite un objet wave.
         """
         if PiperVoice is None:
-            raise TTSError("piper-tts n'est pas installé. Installez avec: pip install piper-tts")
+            raise TTSError(
+                "piper-tts n'est pas installé. Installez avec: pip install piper-tts"
+            )
 
         # Vérifier que la voix existe
         model_file = f"{voice_id}.onnx"
@@ -125,7 +129,7 @@ class PiperEngine(TTSEngine):
 
         if not model_path.exists():
             raise TTSError(f"Modèle Piper non trouvé: {model_path}")
-        
+
         if not config_path.exists():
             raise TTSError(f"Config Piper non trouvée: {config_path}")
 

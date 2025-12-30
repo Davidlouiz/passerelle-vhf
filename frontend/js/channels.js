@@ -232,7 +232,7 @@ async function testMeasurement(channelId, providerId, stationId) {
             const data = await response.json();
             const date = new Date(data.measurement_at);
             const age = Math.round((Date.now() - date.getTime()) / 60000); // minutes
-            
+
             alert(
                 `✅ Mesure récupérée avec succès!\n\n` +
                 `📅 Date: ${date.toLocaleString('fr-FR')}\n` +

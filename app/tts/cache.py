@@ -25,6 +25,7 @@ class TTSCacheService:
         """
         if cache_dir is None:
             from app.database import DATA_DIR
+
             cache_dir = DATA_DIR / "audio_cache"
 
         self.cache_dir = Path(cache_dir)

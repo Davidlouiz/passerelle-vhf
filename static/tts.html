@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test de synthèse vocale - Passerelle VHF</title>
     <link rel="stylesheet" href="/css/style.css">
 </head>
+
 <body>
     <nav>
         <div class="nav-container">
@@ -39,12 +41,8 @@
 
                 <div class="form-group">
                     <label for="text-input">Texte à synthétiser :</label>
-                    <textarea 
-                        id="text-input" 
-                        class="form-control" 
-                        rows="6"
-                        placeholder="Tapez le texte à synthétiser ici...&#10;&#10;Exemple : Station Commes, vent moyen 15 kilomètres par heure, rafales 25."
-                    ></textarea>
+                    <textarea id="text-input" class="form-control" rows="6"
+                        placeholder="Tapez le texte à synthétiser ici...&#10;&#10;Exemple : Station Commes, vent moyen 15 kilomètres par heure, rafales 25."></textarea>
                     <small class="help-text">Tapez le texte que vous souhaitez entendre</small>
                 </div>
 
@@ -87,7 +85,8 @@
                     <li><strong>Moteur TTS :</strong> Piper (synthèse hors ligne)</li>
                     <li><strong>Voix disponibles :</strong> <span id="voice-count">0</span></li>
                     <li><strong>Format audio :</strong> WAV 22050 Hz mono</li>
-                    <li><strong>Cache :</strong> Les audios synthétisés sont mis en cache (réutilisation automatique)</li>
+                    <li><strong>Cache :</strong> Les audios synthétisés sont mis en cache (réutilisation automatique)
+                    </li>
                 </ul>
             </section>
         </div>
@@ -115,7 +114,7 @@
             border-color: #007bff;
             background: #f0f8ff;
             transform: translateY(-2px);
-            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
         }
 
         .status-message {
@@ -180,4 +179,5 @@
     <script src="/js/auth.js"></script>
     <script src="/js/tts.js"></script>
 </body>
+
 </html>
