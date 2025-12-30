@@ -59,21 +59,39 @@ class PiperEngine(TTSEngine):
         known_voices = [
             {
                 "id": "fr_FR-siwis-medium",
-                "label": "Siwis (FR) - Medium",
+                "label": "Siwis (Féminine, Claire) - Medium",
                 "languages": ["fr"],
                 "file": "fr_FR-siwis-medium.onnx",
             },
             {
                 "id": "fr_FR-tom-medium",
-                "label": "Tom (FR) - Medium",
+                "label": "Tom (Masculine, Grave) - Medium",
                 "languages": ["fr"],
                 "file": "fr_FR-tom-medium.onnx",
             },
             {
                 "id": "fr_FR-upmc-medium",
-                "label": "UPMC (FR) - Medium",
+                "label": "UPMC (Neutre, Professionnelle) - Medium",
                 "languages": ["fr"],
                 "file": "fr_FR-upmc-medium.onnx",
+            },
+            {
+                "id": "fr_FR-gilles-low",
+                "label": "Gilles (Masculine, Rapide) - Low",
+                "languages": ["fr"],
+                "file": "fr_FR-gilles-low.onnx",
+            },
+            {
+                "id": "fr_FR-mls-medium",
+                "label": "MLS (Féminine, Douce) - Medium",
+                "languages": ["fr"],
+                "file": "fr_FR-mls-medium.onnx",
+            },
+            {
+                "id": "fr_FR-siwis-low",
+                "label": "Siwis (Féminine, Claire) - Low",
+                "languages": ["fr"],
+                "file": "fr_FR-siwis-low.onnx",
             },
         ]
 
