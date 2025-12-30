@@ -55,7 +55,7 @@ class ChannelResponse(BaseModel):
     name: str
     provider_id: str
     station_id: int
-    station_visual_url_cache: str
+    station_visual_url_cache: Optional[str] = None
     frequency_mhz: float
     template_text: str
     engine_id: str
@@ -307,7 +307,7 @@ async def preview_channel(
 ):
     """
     Prévisualise une annonce avec de vraies valeurs de la station.
-    
+
     Récupère la dernière mesure, rend le template et génère l'audio.
     """
     from app.services.template import TemplateRenderer
@@ -315,77 +315,88 @@ async def preview_channel(
     from app.database import DATA_DIR
     import hashlib
     import shutil
-    
+
     # Récupérer le canal
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
-    
+
     # Récupérer les credentials du provider
     from app.models import ProviderCredential
-    creds = db.query(ProviderCredential).filter(
-        ProviderCredential.provider_id == channel.provider_id
-    ).first()
-    
+
+    creds = (
+        db.query(ProviderCredential)
+        .filter(ProviderCredential.provider_id == channel.provider_id)
+        .first()
+    )
+
     # Récupérer le provider
     if channel.provider_id == "ffvl":
         from app.providers.ffvl import FFVLProvider
+
         if not creds or not creds.credentials_json.get("api_key"):
             raise HTTPException(status_code=400, detail="Clé API FFVL manquante")
         provider = FFVLProvider(api_key=creds.credentials_json["api_key"])
     elif channel.provider_id == "openwindmap":
         from app.providers.openwindmap import OpenWindMapProvider
+
         provider = OpenWindMapProvider()
     else:
-        raise HTTPException(status_code=400, detail=f"Provider inconnu: {channel.provider_id}")
-    
+        raise HTTPException(
+            status_code=400, detail=f"Provider inconnu: {channel.provider_id}"
+        )
+
     # Récupérer la dernière mesure
     try:
         measurement = await provider.fetch_measurement(channel.station_id)
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur récupération mesure: {str(e)}")
-    
+        raise HTTPException(
+            status_code=500, detail=f"Erreur récupération mesure: {str(e)}"
+        )
+
     if not measurement:
         raise HTTPException(status_code=404, detail="Aucune mesure disponible")
-    
+
     # Calculer l'âge de la mesure
     now = datetime.datetime.now(datetime.timezone.utc)
     measurement_age = now - measurement.measurement_at
     measurement_age_minutes = int(measurement_age.total_seconds() / 60)
-    
+
     # Préparer les variables pour le template
     template_vars = {
-        "station_name": channel.name,  # Utiliser channel.name
+        "station_name": channel.name,
         "wind_avg_kmh": round(measurement.wind_avg_kmh),
         "wind_max_kmh": round(measurement.wind_max_kmh),
+        "wind_direction_cardinal": measurement.wind_direction_cardinal,
+        "wind_direction_name": measurement.wind_direction_name,
         "measurement_age_minutes": measurement_age_minutes,
     }
-    
+
     # Rendre le template
     try:
         renderer = TemplateRenderer()
         rendered_text = renderer.render(channel.template_text, template_vars)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur rendu template: {str(e)}")
-    
+
     # Générer l'audio
     try:
         # Créer le nom de fichier basé sur le hash
         content_hash = hashlib.md5(rendered_text.encode()).hexdigest()[:12]
         filename = f"preview_{content_hash}.wav"
-        
+
         # Vérifier le cache
         cache_dir = DATA_DIR / "audio_cache"
         cache_dir.mkdir(parents=True, exist_ok=True)
         output_path = cache_dir / filename
-        
+
         was_cached = output_path.exists()
-        
+
         if not was_cached:
             # Générer l'audio
             engine = PiperEngine()
             engine.synthesize(rendered_text, channel.voice_id, str(output_path))
-        
+
         return {
             "rendered_text": rendered_text,
             "audio_url": f"/api/tts/audio/{filename}",
@@ -397,6 +408,8 @@ async def preview_channel(
             },
             "was_cached": was_cached,
         }
-        
+
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur génération audio: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erreur génération audio: {str(e)}"
+        )

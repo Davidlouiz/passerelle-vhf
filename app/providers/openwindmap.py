@@ -214,6 +214,9 @@ class OpenWindMapProvider(WeatherProvider):
                 wind_min_kmh=float(measurements.get("wind_speed_min"))
                 if measurements.get("wind_speed_min")
                 else None,
+                wind_direction=float(measurements.get("wind_heading"))
+                if measurements.get("wind_heading") is not None
+                else None,
             )
 
         except Exception as e:

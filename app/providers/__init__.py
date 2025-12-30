@@ -18,6 +18,7 @@ class Measurement:
     wind_avg_kmh: float
     wind_max_kmh: float
     wind_min_kmh: Optional[float] = None
+    wind_direction: Optional[float] = None  # Degrés (0-359)
 
     def to_dict(self) -> dict:
         """Convertit en dictionnaire."""
@@ -26,7 +27,27 @@ class Measurement:
             "wind_avg_kmh": self.wind_avg_kmh,
             "wind_max_kmh": self.wind_max_kmh,
             "wind_min_kmh": self.wind_min_kmh,
+            "wind_direction": self.wind_direction,
         }
+    
+    @property
+    def wind_direction_cardinal(self) -> str:
+        """Direction cardinale (N, NE, E, SE, S, SO, O, NO)."""
+        if self.wind_direction is None:
+            return "N/A"
+        directions = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
+        index = round(self.wind_direction / 45) % 8
+        return directions[index]
+    
+    @property
+    def wind_direction_name(self) -> str:
+        """Direction en toutes lettres."""
+        if self.wind_direction is None:
+            return "variable"
+        names = ["Nord", "Nord-Est", "Est", "Sud-Est", "Sud", 
+                 "Sud-Ouest", "Ouest", "Nord-Ouest"]
+        index = round(self.wind_direction / 45) % 8
+        return names[index]
 
 
 @dataclass

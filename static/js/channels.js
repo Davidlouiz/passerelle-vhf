@@ -81,6 +81,9 @@ document.getElementById('newChannelBtn').addEventListener('click', () => {
     document.getElementById('modalTitle').textContent = 'Nouvelle balise';
     document.getElementById('channelForm').reset();
     document.getElementById('channelModal').style.display = 'flex';
+
+    // Initialiser le menu des variables après ouverture du modal
+    setTimeout(initVariableMenu, 100);
 });
 
 // Fermer le modal
@@ -99,6 +102,7 @@ document.getElementById('channelForm').addEventListener('submit', async (e) => {
     const name = document.getElementById('channel_name').value.trim();
     const stationUrl = document.getElementById('station_url').value.trim();
     const template = document.getElementById('template').value.trim();
+    const voiceId = document.getElementById('voice_id').value;
     const offsetsStr = document.getElementById('offsets').value.trim();
 
     // Parser les offsets
@@ -108,6 +112,7 @@ document.getElementById('channelForm').addEventListener('submit', async (e) => {
         name,
         station_visual_url: stationUrl,
         template_text: template,
+        voice_id: voiceId,
         offsets_seconds_json: JSON.stringify(offsets)
     };
 
@@ -178,8 +183,8 @@ async function editChannel(channelId) {
             document.getElementById('modalTitle').textContent = 'Éditer la balise';
             document.getElementById('channel_name').value = channel.name;
             document.getElementById('station_url').value = channel.station_visual_url_cache;
-
             document.getElementById('template').value = channel.template_text;
+            document.getElementById('voice_id').value = channel.voice_id || 'fr_FR-siwis-medium';
 
             const offsets = JSON.parse(channel.offsets_seconds_json);
             document.getElementById('offsets').value = offsets.join(', ');
@@ -276,10 +281,10 @@ async function previewAnnouncement(channelId) {
 
         if (response.ok) {
             const data = await response.json();
-            
+
             // Afficher le modal de prévisualisation
             showPreviewModal(data);
-            
+
         } else {
             const error = await response.json();
             showNotification('Erreur', error.detail || 'Erreur inconnue', 'error');
@@ -331,32 +336,32 @@ function showPreviewModal(data) {
         `;
         document.body.appendChild(modal);
     }
-    
+
     // Remplir les données
     const measurement = data.measurement;
     const date = new Date(measurement.measurement_at);
-    
+
     document.getElementById('previewMeasurement').innerHTML = `
         <p><strong>📅 Date:</strong> ${date.toLocaleString('fr-FR')}</p>
         <p><strong>⏰ Âge:</strong> ${measurement.age_minutes} minute(s)</p>
         <p><strong>💨 Vent moyen:</strong> ${measurement.wind_avg_kmh.toFixed(1)} km/h</p>
         <p><strong>💨 Rafales:</strong> ${measurement.wind_max_kmh.toFixed(1)} km/h</p>
     `;
-    
+
     document.getElementById('previewText').textContent = data.rendered_text;
-    
+
     const audio = document.getElementById('previewAudio');
     audio.src = data.audio_url;
     audio.load();
-    
+
     // Lancer la lecture automatiquement
     audio.play().catch(err => console.log('Autoplay bloqué:', err));
-    
-    const cacheInfo = data.was_cached ? 
-        '✅ Audio récupéré du cache' : 
+
+    const cacheInfo = data.was_cached ?
+        '✅ Audio récupéré du cache' :
         '🆕 Audio nouvellement généré';
     document.getElementById('cacheInfo').textContent = cacheInfo;
-    
+
     // Afficher le modal
     modal.style.display = 'flex';
 }
@@ -383,7 +388,7 @@ function showNotification(title, message, type = 'info') {
         container.className = 'notification-container';
         document.body.appendChild(container);
     }
-    
+
     // Créer la notification
     const notification = document.createElement('div');
     notification.className = `notification notification-${type}`;
@@ -394,9 +399,9 @@ function showNotification(title, message, type = 'info') {
         </div>
         <div class="notification-body">${message}</div>
     `;
-    
+
     container.appendChild(notification);
-    
+
     // Auto-supprimer après 5 secondes
     setTimeout(() => {
         notification.style.animation = 'slideOut 0.3s ease-out';
@@ -404,5 +409,138 @@ function showNotification(title, message, type = 'info') {
     }, 5000);
 }
 
+// Menu des variables - simplifié et fonctionnel
+function initVariableMenu() {
+    const insertBtn = document.getElementById('insertVarBtn');
+    const menu = document.getElementById('variableMenu');
+    const textarea = document.getElementById('template');
+
+    if (!insertBtn || !menu || !textarea) {
+        console.log('Éléments du menu variable non trouvés');
+        return;
+    }
+
+    console.log('Initialisation du menu des variables');
+
+    // Reset le menu
+    menu.style.display = 'none';
+
+    // Supprimer les anciens listeners en clonant les éléments
+    const newInsertBtn = insertBtn.cloneNode(true);
+    insertBtn.parentNode.replaceChild(newInsertBtn, insertBtn);
+
+    // Toggle menu au clic sur le bouton
+    newInsertBtn.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        const isVisible = menu.style.display === 'block';
+        menu.style.display = isVisible ? 'none' : 'block';
+        console.log('Menu toggled:', menu.style.display);
+    });
+
+    // Insertion au clic sur un item du menu
+    menu.querySelectorAll('.variable-item').forEach(item => {
+        // Cloner pour retirer les anciens listeners
+        const newItem = item.cloneNode(true);
+        item.parentNode.replaceChild(newItem, item);
+
+        newItem.addEventListener('click', (e) => {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const varName = newItem.dataset.var;
+            const cursorPos = textarea.selectionStart;
+            const textBefore = textarea.value.substring(0, cursorPos);
+            const textAfter = textarea.value.substring(cursorPos);
+
+            textarea.value = textBefore + `{${varName}}` + textAfter;
+            textarea.focus();
+            textarea.selectionStart = textarea.selectionEnd = cursorPos + varName.length + 2;
+
+            menu.style.display = 'none';
+            console.log('Variable insérée:', varName);
+        });
+    });
+
+    // Fermer le menu si on clique ailleurs
+    document.addEventListener('click', (e) => {
+        const insertBtnCurrent = document.getElementById('insertVarBtn');
+        if (insertBtnCurrent && !insertBtnCurrent.contains(e.target) && !menu.contains(e.target)) {
+            menu.style.display = 'none';
+        }
+    });
+}
+
+// Charger les voix disponibles
+async function loadVoices() {
+    try {
+        const response = await fetch('/api/tts/voices', {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+
+        if (response.ok) {
+            const voices = await response.json();
+            const select = document.getElementById('voice_id');
+            select.innerHTML = voices.map(v =>
+                `<option value="${v.voice_id}">${v.label}</option>`
+            ).join('');
+        }
+    } catch (err) {
+        console.error('Erreur chargement voix:', err);
+    }
+}
+
+// Tester la voix avec le template actuel
+async function testVoiceWithTemplate() {
+    const voiceId = document.getElementById('voice_id').value;
+    const template = document.getElementById('template').value.trim();
+
+    if (!voiceId) {
+        showNotification('Attention', 'Veuillez choisir une voix', 'info');
+        return;
+    }
+
+    if (!template) {
+        showNotification('Attention', 'Veuillez saisir un texte d\'annonce', 'info');
+        return;
+    }
+
+    // Remplacer les variables par des valeurs fictives
+    const testText = template
+        .replace(/{station_name}/g, 'Col de la Forclaz')
+        .replace(/{wind_avg_kmh}/g, '23')
+        .replace(/{wind_max_kmh}/g, '37')
+        .replace(/{wind_min_kmh}/g, '18')
+        .replace(/{wind_direction_deg}/g, '225')
+        .replace(/{wind_direction_cardinal}/g, 'SO')
+        .replace(/{wind_direction_name}/g, 'Sud-Ouest')
+        .replace(/{measurement_age_minutes}/g, '5');
+
+    try {
+        const response = await fetch('/api/tts/synthesize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                text: testText,
+                voice_id: voiceId
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const audio = new Audio(data.audio_url);
+            audio.play();
+            showNotification('Lecture', 'Audio en cours de lecture...', 'success');
+        }
+    } catch (err) {
+        console.error('Erreur test voix:', err);
+        showNotification('Erreur', 'Erreur lors du test de la voix', 'error');
+    }
+}
+
 // Charger au démarrage
 loadChannels();
+loadVoices();

@@ -183,6 +183,9 @@ class FFVLProvider(WeatherProvider):
                 wind_min_kmh=float(last_measure.get("vitesseVentMin"))
                 if last_measure.get("vitesseVentMin")
                 else None,
+                wind_direction=float(last_measure.get("directVentMoy"))
+                if last_measure.get("directVentMoy")
+                else None,
             )
 
         except Exception as e:
