@@ -53,7 +53,10 @@ function displayChannels(channels) {
                         </td>
                         <td>
                             <button onclick="testMeasurement(${ch.id}, '${ch.provider_id}', '${ch.station_id}')" class="btn btn-sm btn-info" title="Tester récupération mesure">
-                                🌡️ Test
+                                🌡️
+                            </button>
+                            <button onclick="previewAnnouncement(${ch.id})" class="btn btn-sm btn-primary" title="Écouter avec vraies valeurs">
+                                🔊
                             </button>
                         </td>
                         <td>
@@ -253,6 +256,118 @@ async function testMeasurement(channelId, providerId, stationId) {
         btn.innerHTML = originalText;
     }
 }
+
+// Prévisualiser une annonce avec vraies valeurs
+async function previewAnnouncement(channelId) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳';
+
+    try {
+        const response = await fetch(`/api/channels/${channelId}/preview`, {
+            method: 'POST',
+            headers: {
+                'Authorization': `Bearer ${token}`,
+                'Content-Type': 'application/json'
+            }
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            
+            // Afficher le modal de prévisualisation
+            showPreviewModal(data);
+            
+        } else {
+            const error = await response.json();
+            alert(`❌ Erreur: ${error.detail || 'Erreur inconnue'}`);
+        }
+    } catch (err) {
+        console.error('Erreur:', err);
+        alert(`❌ Erreur lors de la prévisualisation: ${err.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
+    }
+}
+
+// Afficher le modal de prévisualisation
+function showPreviewModal(data) {
+    // Créer le modal s'il n'existe pas
+    let modal = document.getElementById('previewModal');
+    if (!modal) {
+        modal = document.createElement('div');
+        modal.id = 'previewModal';
+        modal.className = 'modal';
+        modal.innerHTML = `
+            <div class="modal-content" style="max-width: 600px;">
+                <div class="modal-header">
+                    <h2>🔊 Prévisualisation annonce</h2>
+                    <span class="close" onclick="closePreviewModal()">&times;</span>
+                </div>
+                <div class="modal-body">
+                    <div class="preview-section">
+                        <h3>📊 Mesures actuelles</h3>
+                        <div id="previewMeasurement" class="info-box"></div>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <h3>📝 Texte rendu</h3>
+                        <div id="previewText" class="info-box" style="font-family: monospace;"></div>
+                    </div>
+                    
+                    <div class="preview-section">
+                        <h3>🎧 Audio</h3>
+                        <audio id="previewAudio" controls style="width: 100%;"></audio>
+                        <p class="text-muted" style="margin-top: 10px; font-size: 12px;" id="cacheInfo"></p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button onclick="closePreviewModal()" class="btn btn-secondary">Fermer</button>
+                </div>
+            </div>
+        `;
+        document.body.appendChild(modal);
+    }
+    
+    // Remplir les données
+    const measurement = data.measurement;
+    const date = new Date(measurement.measurement_at);
+    
+    document.getElementById('previewMeasurement').innerHTML = `
+        <p><strong>📅 Date:</strong> ${date.toLocaleString('fr-FR')}</p>
+        <p><strong>⏰ Âge:</strong> ${measurement.age_minutes} minute(s)</p>
+        <p><strong>💨 Vent moyen:</strong> ${measurement.wind_avg_kmh.toFixed(1)} km/h</p>
+        <p><strong>💨 Rafales:</strong> ${measurement.wind_max_kmh.toFixed(1)} km/h</p>
+    `;
+    
+    document.getElementById('previewText').textContent = data.rendered_text;
+    
+    const audio = document.getElementById('previewAudio');
+    audio.src = data.audio_url;
+    audio.load();
+    
+    const cacheInfo = data.was_cached ? 
+        '✅ Audio récupéré du cache' : 
+        '🆕 Audio nouvellement généré';
+    document.getElementById('cacheInfo').textContent = cacheInfo;
+    
+    // Afficher le modal
+    modal.style.display = 'flex';
+}
+
+// Fermer le modal de prévisualisation
+function closePreviewModal() {
+    const modal = document.getElementById('previewModal');
+    if (modal) {
+        const audio = document.getElementById('previewAudio');
+        audio.pause();
+        audio.currentTime = 0;
+        modal.style.display = 'none';
+    }
+}
+
 
 // Charger au démarrage
 loadChannels();

@@ -480,3 +480,31 @@ textarea:focus {
     background: #f5f5f5;
     border-radius: 8px;
 }
+
+/* Preview Modal */
+.preview-section {
+    margin-bottom: 20px;
+}
+
+.preview-section h3 {
+    font-size: 16px;
+    margin-bottom: 10px;
+    color: var(--text-color);
+}
+
+.info-box {
+    padding: 15px;
+    background: var(--bg-light);
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+}
+
+.info-box p {
+    margin: 8px 0;
+    font-size: 14px;
+}
+
+.info-box p strong {
+    display: inline-block;
+    min-width: 120px;
+}

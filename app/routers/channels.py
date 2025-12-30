@@ -297,3 +297,87 @@ def toggle_channel(
         "message": f"Canal {'activé' if channel.is_enabled else 'désactivé'}",
         "is_enabled": channel.is_enabled,
     }
+
+
+@router.post("/{channel_id}/preview")
+def preview_channel(
+    channel_id: int,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """
+    Prévisualise une annonce avec de vraies valeurs de la station.
+    
+    Récupère la dernière mesure, rend le template et génère l'audio.
+    """
+    from app.providers import get_provider
+    from app.template import render_template
+    from app.tts.cache import get_or_create_audio
+    import hashlib
+    
+    # Récupérer le canal
+    channel = db.query(Channel).filter(Channel.id == channel_id).first()
+    if not channel:
+        raise HTTPException(status_code=404, detail="Canal non trouvé")
+    
+    # Récupérer le provider
+    try:
+        provider = get_provider(channel.provider_id, db)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur provider: {str(e)}")
+    
+    # Récupérer la dernière mesure
+    try:
+        measurement = provider.get_measurement(channel.station_id)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur récupération mesure: {str(e)}")
+    
+    if not measurement:
+        raise HTTPException(status_code=404, detail="Aucune mesure disponible")
+    
+    # Calculer l'âge de la mesure
+    now = datetime.datetime.now(datetime.timezone.utc)
+    measurement_age = now - measurement["measurement_at"]
+    measurement_age_minutes = int(measurement_age.total_seconds() / 60)
+    
+    # Préparer les variables pour le template
+    template_vars = {
+        "station_name": channel.station_name,
+        "wind_avg_kmh": round(measurement["wind_avg_kmh"]),
+        "wind_max_kmh": round(measurement["wind_max_kmh"]),
+        "measurement_age_minutes": measurement_age_minutes,
+    }
+    
+    # Rendre le template
+    try:
+        rendered_text = render_template(channel.template_text, template_vars)
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur rendu template: {str(e)}")
+    
+    # Générer l'audio
+    try:
+        voice_params = json.loads(channel.voice_params_json or "{}")
+        audio_path, was_cached = get_or_create_audio(
+            engine_id=channel.engine_id,
+            voice_id=channel.voice_id,
+            voice_params=voice_params,
+            text=rendered_text,
+        )
+        
+        # Créer un nom de fichier pour servir l'audio
+        filename = f"preview_{hashlib.md5(rendered_text.encode()).hexdigest()[:12]}.wav"
+        
+        return {
+            "rendered_text": rendered_text,
+            "audio_url": f"/api/tts/audio/{filename}",
+            "measurement": {
+                "wind_avg_kmh": measurement["wind_avg_kmh"],
+                "wind_max_kmh": measurement["wind_max_kmh"],
+                "measurement_at": measurement["measurement_at"].isoformat(),
+                "age_minutes": measurement_age_minutes,
+            },
+            "was_cached": was_cached,
+        }
+        
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur génération audio: {str(e)}")
