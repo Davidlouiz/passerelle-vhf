@@ -64,7 +64,7 @@ def list_providers(
             name="FFVL (Fédération Française de Vol Libre)",
             requires_auth=True,
             description="Accès aux balises météo FFVL via balisemeteo.com",
-            is_configured="ffvl" in credentials and bool(credentials["ffvl"].api_key),
+            is_configured="ffvl" in credentials and bool(credentials["ffvl"].credentials_json.get("api_key")),
         ),
         ProviderInfo(
             provider_id="openwindmap",
@@ -102,22 +102,26 @@ def update_credentials(
         .first()
     )
 
+    # Construire le dict de credentials
+    credentials_dict = {}
+    if data.api_key is not None:
+        credentials_dict["api_key"] = data.api_key
+    if data.username is not None:
+        credentials_dict["username"] = data.username
+    if data.password is not None:
+        credentials_dict["password"] = data.password
+
     if credential:
-        # Mise à jour
-        if data.api_key is not None:
-            credential.api_key = data.api_key
-        if data.username is not None:
-            credential.username = data.username
-        if data.password is not None:
-            credential.password = data.password
+        # Mise à jour - fusionner avec l'existant
+        existing = credential.credentials_json or {}
+        existing.update(credentials_dict)
+        credential.credentials_json = existing
         credential.updated_at = datetime.datetime.now(datetime.timezone.utc)
     else:
         # Création
         credential = ProviderCredential(
             provider_id=data.provider_id,
-            api_key=data.api_key,
-            username=data.username,
-            password=data.password,
+            credentials_json=credentials_dict,
         )
         db.add(credential)
 
