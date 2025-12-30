@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historique - Passerelle VHF</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🌊 VHF</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/static/dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Tableau de bord
+                </a>
+                <a href="/static/channels.html" class="nav-item">
+                    <span class="icon">📡</span>
+                    Balises
+                </a>
+                <a href="/static/providers.html" class="nav-item">
+                    <span class="icon">🌐</span>
+                    Providers
+                </a>
+                <a href="/static/history.html" class="nav-item active">
+                    <span class="icon">📝</span>
+                    Historique TX
+                </a>
+                <a href="/static/settings.html" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Paramètres
+                </a>
+                <a href="/static/admin.html" class="nav-item">
+                    <span class="icon">👤</span>
+                    Administration
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-sm btn-secondary btn-block">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+        
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Historique des transmissions</h1>
+            </header>
+            
+            <div class="content">
+                <div class="card">
+                    <div class="card-body">
+                        <p class="text-muted">Aucune transmission enregistrée.</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/static/js/common.js"></script>
+</body>
+</html>

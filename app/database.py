@@ -6,6 +6,7 @@ from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
 from contextlib import contextmanager
 from pathlib import Path
+from typing import Generator
 import os
 
 from app.models import Base
@@ -34,7 +35,7 @@ def init_db():
     print(f"✓ Base de données initialisée : {DATABASE_URL}")
 
 
-def get_db() -> Session:
+def get_db() -> Generator[Session, None, None]:
     """
     Dependency pour FastAPI - fournit une session DB.
     

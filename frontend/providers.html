@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Providers - Passerelle VHF</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🌊 VHF</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/static/dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Tableau de bord
+                </a>
+                <a href="/static/channels.html" class="nav-item">
+                    <span class="icon">📡</span>
+                    Balises
+                </a>
+                <a href="/static/providers.html" class="nav-item active">
+                    <span class="icon">🌐</span>
+                    Providers
+                </a>
+                <a href="/static/history.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    Historique TX
+                </a>
+                <a href="/static/settings.html" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Paramètres
+                </a>
+                <a href="/static/admin.html" class="nav-item">
+                    <span class="icon">👤</span>
+                    Administration
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-sm btn-secondary btn-block">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Configuration des providers</h1>
+            </header>
+            
+            <div class="content">
+                <!-- FFVL -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>FFVL (Fédération Française de Vol Libre)</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Configuration de la clé API pour accéder aux balises FFVL.</p>
+                        <form id="ffvlForm">
+                            <div class="form-group">
+                                <label for="ffvl_api_key">Clé API FFVL</label>
+                                <input type="password" id="ffvl_api_key" placeholder="Saisissez votre clé API">
+                                <small class="text-muted">Vous pouvez obtenir une clé API sur balisemeteo.com</small>
+                            </div>
+                            <div id="ffvl-status" style="margin-bottom: 1rem;"></div>
+                            <button type="submit" class="btn btn-primary">Enregistrer</button>
+                        </form>
+                    </div>
+                </div>
+                
+                <!-- OpenWindMap -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>OpenWindMap (API Pioupiou)</h3>
+                    </div>
+                    <div class="card-body">
+                        <p class="text-muted">Pas d'authentification requise pour OpenWindMap.</p>
+                        <p>✓ Provider prêt à l'emploi</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/static/js/common.js"></script>
+    <script src="/static/js/providers.js"></script>
+</body>
+</html>

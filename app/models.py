@@ -42,28 +42,30 @@ class Channel(Base):
 
     id = Column(Integer, primary_key=True)
     name = Column(String(100), nullable=False)
-    enabled = Column(Boolean, default=False, nullable=False)
+    is_enabled = Column(Boolean, default=False, nullable=False)
     
     # Provider et station
     provider_id = Column(String(50), nullable=False, index=True)
-    station_id = Column(String(50), nullable=False)
-    station_name_cache = Column(String(200), nullable=True)
+    station_id = Column(Integer, nullable=False)
     station_visual_url_cache = Column(String(500), nullable=True)
     
+    # Radio (optionnel, non utilisé pour l'instant)
+    frequency_mhz = Column(Float, default=0.0, nullable=False)
+    
     # Planification
-    measurement_period_seconds = Column(Integer, nullable=False)  # Aussi utilisé pour péremption
-    offsets_seconds_json = Column(JSON, nullable=False)  # Ex: [0, 1200, 2400]
-    offset_policy = Column(String(20), default="cancel_on_new", nullable=False)
-    min_interval_between_tx_seconds = Column(Integer, default=300, nullable=False)
+    measurement_period_seconds = Column(Integer, default=3600, nullable=False)
+    offsets_seconds_json = Column(String, default='[0]', nullable=False)
+    min_interval_between_tx_seconds = Column(Integer, default=600, nullable=False)
     
     # Template et voix
     template_text = Column(Text, nullable=False)
-    voice_engine_id = Column(String(50), nullable=False)
-    voice_id = Column(String(100), nullable=False)
-    voice_params_json = Column(JSON, nullable=True)  # Paramètres spécifiques au moteur
+    engine_id = Column(String(50), default="piper", nullable=False)
+    voice_id = Column(String(100), default="fr_FR-siwis-medium", nullable=False)
+    voice_params_json = Column(String, default='{}', nullable=False)
     
-    # Audio
-    audio_device = Column(String(100), nullable=True)  # Device ALSA/PulseAudio
+    # Timing PTT
+    lead_ms = Column(Integer, default=500, nullable=False)
+    tail_ms = Column(Integer, default=500, nullable=False)
     
     created_at = Column(DateTime, default=datetime.utcnow, nullable=False)
     updated_at = Column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False)

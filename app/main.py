@@ -33,13 +33,16 @@ async def startup_event():
     """Initialise la base de données au démarrage."""
     init_db()
 
-# TODO: Ajouter les routers
-# from app.routers import auth, channels, providers, tts, status
-# app.include_router(auth.router, prefix="/api/auth", tags=["auth"])
-# app.include_router(channels.router, prefix="/api/channels", tags=["channels"])
-# app.include_router(providers.router, prefix="/api/providers", tags=["providers"])
+# Ajouter les routers
+from app.routers import auth, status, providers, channels
+app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
+app.include_router(status.router, prefix="/api/status", tags=["Statut"])
+app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
+app.include_router(channels.router, prefix="/api/channels", tags=["Canaux"])
+
+# TODO: Ajouter les autres routers
+# from app.routers import tts
 # app.include_router(tts.router, prefix="/api/tts", tags=["tts"])
-# app.include_router(status.router, prefix="/api/status", tags=["status"])
 
 # Servir les fichiers statiques du frontend
 frontend_path = Path(__file__).parent.parent / "frontend"
