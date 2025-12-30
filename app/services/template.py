@@ -45,31 +45,41 @@ def degrees_to_cardinal(degrees: float) -> str:
 
 def degrees_to_name(degrees: float) -> str:
     """
-    Convertit des degrés en nom de direction en français.
+    Convertit des degrés en nom de direction en français optimisé pour TTS.
+
+    Les noms sont adaptés pour une meilleure prononciation par les moteurs TTS :
+    - "Este" au lieu de "Est" quand il est suivi d'un tiret (meilleure liaison)
+    - Vous pouvez modifier ces valeurs ci-dessous pour ajuster la prononciation
 
     Args:
         degrees: Direction en degrés (0-359)
 
     Returns:
-        Nom complet (Nord, Nord-Est, etc.)
+        Nom complet optimisé pour TTS (Nord, Nord-Este, etc.)
     """
+    # 🔊 PERSONNALISATION PRONONCIATION TTS
+    # Modifiez ces valeurs pour ajuster la prononciation vocale.
+    # Exemples de modifications possibles :
+    #   - "Este" → meilleure liaison que "Est" avec tiret
+    #   - "Oueste" → si "Ouest" est mal prononcé
+    #   - Ajouter des espaces pour ralentir : "Nord - Este"
     names = [
-        "Nord",
-        "Nord-Nord-Est",
-        "Nord-Est",
-        "Est-Nord-Est",
-        "Est",
-        "Est-Sud-Est",
-        "Sud-Est",
-        "Sud-Sud-Est",
-        "Sud",
-        "Sud-Sud-Ouest",
-        "Sud-Ouest",
-        "Ouest-Sud-Ouest",
-        "Ouest",
-        "Ouest-Nord-Ouest",
-        "Nord-Ouest",
-        "Nord-Nord-Ouest",
+        "Nord",              # 0° (360°)
+        "Nord-Nord-Este",    # 22.5°
+        "Nord-Este",         # 45°
+        "Este-Nord-Este",    # 67.5°
+        "Este",              # 90°
+        "Este-Sud-Este",     # 112.5°
+        "Sud-Este",          # 135°
+        "Sud-Sud-Este",      # 157.5°
+        "Sud",               # 180°
+        "Sud-Sud-Oueste",    # 202.5°
+        "Sud-Oueste",        # 225°
+        "Oueste-Sud-Oueste", # 247.5°
+        "Oueste",            # 270°
+        "Oueste-Nord-Oueste",# 292.5°
+        "Nord-Oueste",       # 315°
+        "Nord-Nord-Oueste",  # 337.5°
     ]
     index = round((degrees % 360) / 22.5)
     return names[index % 16]
