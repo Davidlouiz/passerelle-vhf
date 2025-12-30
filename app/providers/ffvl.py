@@ -5,6 +5,7 @@ API balisemeteo.com - requiert une clé API.
 """
 
 import re
+from datetime import datetime
 from typing import Optional, Dict, List
 from urllib.parse import urlparse, parse_qs
 import httpx
@@ -18,7 +19,7 @@ class FFVLProvider(WeatherProvider):
 
     def __init__(self):
         self._api_key: Optional[str] = None
-        self._base_url = "https://www.balisemeteo.com"
+        self._base_url = "https://data.ffvl.fr/api"
 
     @property
     def provider_id(self) -> str:
@@ -88,16 +89,16 @@ class FFVLProvider(WeatherProvider):
         """
         Récupère la dernière mesure pour une station FFVL.
 
-        Utilise l'API balisemeteo.com qui nécessite une clé API.
+        Utilise l'API data.ffvl.fr qui retourne du JSON.
         """
         if not self._api_key:
             raise ProviderError("Clé API FFVL non configurée")
 
-        # L'API FFVL utilise le format: balise.php?idBalise=XX&periode=last&key=API_KEY
-        url = f"{self._base_url}/balise.php?idBalise={station_id}&periode=last&key={self._api_key}"
+        # L'API FFVL: https://data.ffvl.fr/api?base=balises&r=histo&idbalise=XXX&mode=json&key=...
+        url = f"{self._base_url}?base=balises&r=histo&idbalise={station_id}&mode=json&key={self._api_key}"
 
         try:
-            async with httpx.AsyncClient(timeout=10.0) as client:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
                 response = await client.get(url)
 
                 if response.status_code == 404:
@@ -132,52 +133,45 @@ class FFVLProvider(WeatherProvider):
                 results[station_id] = None
         return results
 
-    def _parse_measurement(self, data: dict, station_id: str) -> Optional[Measurement]:
+    def _parse_measurement(self, data: list, station_id: str) -> Optional[Measurement]:
         """
-        Parse les données brutes de l'API FFVL en Measurement normalisé.
+        Parse les données JSON de l'API FFVL.
 
-        Format API FFVL (simplifié):
-        {
-            "idbalise": "67",
-            "nom": "Commes",
-            "last_measure": {
-                "date": "2024-01-15 14:30:00",
-                "vitesse_moy": "15.2",
-                "vitesse_max": "22.1",
-                "vitesse_min": "10.5"
+        Format API FFVL:
+        [
+            {
+                "idbalise": "158",
+                "date": "2025-12-30 19:31:56",
+                "vitesseVentMoy": "25",
+                "vitesseVentMax": "35",
+                "vitesseVentMin": "15",
+                "directVentMoy": "66",
+                "temperature": "6",
+                ...
             }
-        }
+        ]
         """
         try:
-            # Vérifier structure de base
-            if not isinstance(data, dict):
+            # L'API retourne une liste, on prend le premier élément (le plus récent)
+            if not isinstance(data, list) or len(data) == 0:
                 return None
 
-            last_measure = data.get("last_measure") or data.get("lastMeasure")
-            if not last_measure:
-                return None
+            last_measure = data[0]
 
             # Extraire les données de vent
-            wind_avg = last_measure.get("vitesse_moy") or last_measure.get("vitesseMoy")
-            wind_max = last_measure.get("vitesse_max") or last_measure.get("vitesseMax")
+            wind_avg = last_measure.get("vitesseVentMoy")
+            wind_max = last_measure.get("vitesseVentMax")
 
             if wind_avg is None or wind_max is None:
                 return None
 
-            # Convertir la date (format: "YYYY-MM-DD HH:MM:SS" ou ISO)
-            date_str = last_measure.get("date") or last_measure.get("timestamp")
+            # Convertir la date (format: "YYYY-MM-DD HH:MM:SS")
+            date_str = last_measure.get("date")
             if date_str:
-                # Essayer plusieurs formats de date
                 try:
-                    # Format ISO
-                    measurement_at = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
+                    measurement_at = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
                 except ValueError:
-                    try:
-                        # Format FFVL standard "YYYY-MM-DD HH:MM:SS"
-                        measurement_at = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
-                    except ValueError:
-                        # Fallback sur now
-                        measurement_at = datetime.utcnow()
+                    measurement_at = datetime.utcnow()
             else:
                 measurement_at = datetime.utcnow()
 
@@ -186,8 +180,8 @@ class FFVLProvider(WeatherProvider):
                 measurement_at=measurement_at,
                 wind_avg_kmh=float(wind_avg),
                 wind_max_kmh=float(wind_max),
-                wind_min_kmh=float(last_measure.get("vitesse_min") or last_measure.get("vitesseMin"))
-                if (last_measure.get("vitesse_min") or last_measure.get("vitesseMin"))
+                wind_min_kmh=float(last_measure.get("vitesseVentMin"))
+                if last_measure.get("vitesseVentMin")
                 else None,
             )
 
