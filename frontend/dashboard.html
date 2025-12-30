@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tableau de bord - Passerelle VHF</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🌊 VHF</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/static/dashboard.html" class="nav-item active">
+                    <span class="icon">📊</span>
+                    Tableau de bord
+                </a>
+                <a href="/static/channels.html" class="nav-item">
+                    <span class="icon">📡</span>
+                    Canaux
+                </a>
+                <a href="/static/providers.html" class="nav-item">
+                    <span class="icon">🌐</span>
+                    Providers
+                </a>
+                <a href="/static/history.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    Historique TX
+                </a>
+                <a href="/static/settings.html" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Paramètres
+                </a>
+                <a href="/static/admin.html" class="nav-item">
+                    <span class="icon">👤</span>
+                    Administration
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-sm btn-secondary btn-block">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+        
+        <!-- Main content -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>Tableau de bord</h1>
+                <div class="header-actions">
+                    <span id="system-status" class="badge badge-danger">Système désactivé</span>
+                </div>
+            </header>
+            
+            <div class="content">
+                <!-- Statut global -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Statut système</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-item">
+                                <div class="stat-label">Master Enabled</div>
+                                <div id="master-enabled" class="stat-value">—</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Canaux actifs</div>
+                                <div id="active-channels" class="stat-value">—</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Verrou TX</div>
+                                <div id="tx-lock-status" class="stat-value">Libre</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">Runner</div>
+                                <div id="runner-status" class="stat-value">—</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Canaux -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Canaux</h3>
+                        <a href="/static/channels.html" class="btn btn-sm btn-primary">Gérer</a>
+                    </div>
+                    <div class="card-body">
+                        <div id="channels-list">
+                            <p class="text-muted">Chargement...</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Logs récents -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Logs récents</h3>
+                    </div>
+                    <div class="card-body">
+                        <div id="recent-logs">
+                            <p class="text-muted">Aucun log récent</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+    
+    <script src="/static/js/dashboard.js"></script>
+</body>
+</html>

@@ -1,0 +1,15 @@
+[Unit]
+Description=Passerelle VHF - Serveur Web
+After=network.target
+
+[Service]
+Type=simple
+User=vhf-balise
+WorkingDirectory=/opt/vhf-balise
+Environment="VHF_DATA_DIR=/opt/vhf-balise/data"
+ExecStart=/opt/vhf-balise/venv/bin/uvicorn app.main:app --host 0.0.0.0 --port 8000
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

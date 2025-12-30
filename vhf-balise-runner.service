@@ -1,0 +1,16 @@
+[Unit]
+Description=Passerelle VHF - Runner/Scheduler
+After=network.target vhf-balise-web.service
+Wants=vhf-balise-web.service
+
+[Service]
+Type=simple
+User=vhf-balise
+WorkingDirectory=/opt/vhf-balise
+Environment="VHF_DATA_DIR=/opt/vhf-balise/data"
+ExecStart=/opt/vhf-balise/venv/bin/python -m app.runner
+Restart=always
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target
