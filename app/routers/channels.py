@@ -300,7 +300,7 @@ def toggle_channel(
 
 
 @router.post("/{channel_id}/preview")
-def preview_channel(
+async def preview_channel(
     channel_id: int,
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
@@ -322,9 +322,9 @@ def preview_channel(
         raise HTTPException(status_code=404, detail="Canal non trouvé")
     
     # Récupérer les credentials du provider
-    from app.models import ProviderCredentials
-    creds = db.query(ProviderCredentials).filter(
-        ProviderCredentials.provider_id == channel.provider_id
+    from app.models import ProviderCredential
+    creds = db.query(ProviderCredential).filter(
+        ProviderCredential.provider_id == channel.provider_id
     ).first()
     
     # Récupérer le provider
@@ -341,7 +341,7 @@ def preview_channel(
     
     # Récupérer la dernière mesure
     try:
-        measurement = provider.get_measurement(channel.station_id)
+        measurement = await provider.fetch_measurement(channel.station_id)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur récupération mesure: {str(e)}")
     
@@ -350,14 +350,14 @@ def preview_channel(
     
     # Calculer l'âge de la mesure
     now = datetime.datetime.now(datetime.timezone.utc)
-    measurement_age = now - measurement["measurement_at"]
+    measurement_age = now - measurement.measurement_at
     measurement_age_minutes = int(measurement_age.total_seconds() / 60)
     
     # Préparer les variables pour le template
     template_vars = {
-        "station_name": channel.station_name,
-        "wind_avg_kmh": round(measurement["wind_avg_kmh"]),
-        "wind_max_kmh": round(measurement["wind_max_kmh"]),
+        "station_name": channel.name,  # Utiliser channel.name
+        "wind_avg_kmh": round(measurement.wind_avg_kmh),
+        "wind_max_kmh": round(measurement.wind_max_kmh),
         "measurement_age_minutes": measurement_age_minutes,
     }
     
@@ -390,9 +390,9 @@ def preview_channel(
             "rendered_text": rendered_text,
             "audio_url": f"/api/tts/audio/{filename}",
             "measurement": {
-                "wind_avg_kmh": measurement["wind_avg_kmh"],
-                "wind_max_kmh": measurement["wind_max_kmh"],
-                "measurement_at": measurement["measurement_at"].isoformat(),
+                "wind_avg_kmh": measurement.wind_avg_kmh,
+                "wind_max_kmh": measurement.wind_max_kmh,
+                "measurement_at": measurement.measurement_at.isoformat(),
                 "age_minutes": measurement_age_minutes,
             },
             "was_cached": was_cached,
