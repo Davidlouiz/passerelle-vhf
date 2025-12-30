@@ -310,21 +310,34 @@ def preview_channel(
     
     Récupère la dernière mesure, rend le template et génère l'audio.
     """
-    from app.providers import get_provider
-    from app.template import render_template
-    from app.tts.cache import get_or_create_audio
+    from app.services.template import TemplateRenderer
+    from app.tts.piper_engine import PiperEngine
+    from app.database import DATA_DIR
     import hashlib
+    import shutil
     
     # Récupérer le canal
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
     
+    # Récupérer les credentials du provider
+    from app.models import ProviderCredentials
+    creds = db.query(ProviderCredentials).filter(
+        ProviderCredentials.provider_id == channel.provider_id
+    ).first()
+    
     # Récupérer le provider
-    try:
-        provider = get_provider(channel.provider_id, db)
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur provider: {str(e)}")
+    if channel.provider_id == "ffvl":
+        from app.providers.ffvl import FFVLProvider
+        if not creds or not creds.credentials_json.get("api_key"):
+            raise HTTPException(status_code=400, detail="Clé API FFVL manquante")
+        provider = FFVLProvider(api_key=creds.credentials_json["api_key"])
+    elif channel.provider_id == "openwindmap":
+        from app.providers.openwindmap import OpenWindMapProvider
+        provider = OpenWindMapProvider()
+    else:
+        raise HTTPException(status_code=400, detail=f"Provider inconnu: {channel.provider_id}")
     
     # Récupérer la dernière mesure
     try:
@@ -350,22 +363,28 @@ def preview_channel(
     
     # Rendre le template
     try:
-        rendered_text = render_template(channel.template_text, template_vars)
+        renderer = TemplateRenderer()
+        rendered_text = renderer.render(channel.template_text, template_vars)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur rendu template: {str(e)}")
     
     # Générer l'audio
     try:
-        voice_params = json.loads(channel.voice_params_json or "{}")
-        audio_path, was_cached = get_or_create_audio(
-            engine_id=channel.engine_id,
-            voice_id=channel.voice_id,
-            voice_params=voice_params,
-            text=rendered_text,
-        )
+        # Créer le nom de fichier basé sur le hash
+        content_hash = hashlib.md5(rendered_text.encode()).hexdigest()[:12]
+        filename = f"preview_{content_hash}.wav"
         
-        # Créer un nom de fichier pour servir l'audio
-        filename = f"preview_{hashlib.md5(rendered_text.encode()).hexdigest()[:12]}.wav"
+        # Vérifier le cache
+        cache_dir = DATA_DIR / "audio_cache"
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        output_path = cache_dir / filename
+        
+        was_cached = output_path.exists()
+        
+        if not was_cached:
+            # Générer l'audio
+            engine = PiperEngine()
+            engine.synthesize(rendered_text, channel.voice_id, str(output_path))
         
         return {
             "rendered_text": rendered_text,
