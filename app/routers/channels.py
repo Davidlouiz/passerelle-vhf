@@ -1,4 +1,5 @@
 """API Router pour la gestion des canaux."""
+
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import select
@@ -17,6 +18,7 @@ router = APIRouter()
 
 class ChannelCreate(BaseModel):
     """Création d'un canal."""
+
     name: str
     station_visual_url: str
     frequency_mhz: float = 0.0  # Pas utilisé, mais gardé pour compatibilité DB
@@ -33,6 +35,7 @@ class ChannelCreate(BaseModel):
 
 class ChannelUpdate(BaseModel):
     """Mise à jour d'un canal."""
+
     name: Optional[str] = None
     frequency_mhz: Optional[float] = None
     template_text: Optional[str] = None
@@ -47,6 +50,7 @@ class ChannelUpdate(BaseModel):
 
 class ChannelResponse(BaseModel):
     """Réponse détaillée d'un canal."""
+
     id: int
     name: str
     provider_id: str
@@ -65,15 +69,14 @@ class ChannelResponse(BaseModel):
     is_enabled: bool
     created_at: datetime.datetime
     updated_at: datetime.datetime
-    
+
     class Config:
         from_attributes = True
 
 
 @router.get("/", response_model=list[ChannelResponse])
 def list_channels(
-    db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    db: Session = Depends(get_db), current_user=Depends(get_current_user)
 ):
     """Liste tous les canaux."""
     channels = db.query(Channel).all()
@@ -84,14 +87,14 @@ def list_channels(
 def get_channel(
     channel_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Récupère un canal spécifique."""
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
-    
+
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
-    
+
     return channel
 
 
@@ -99,16 +102,16 @@ def get_channel(
 def create_channel(
     data: ChannelCreate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Crée un nouveau canal."""
-    
+
     # Résoudre la station depuis l'URL
     from app.providers.ffvl import FFVLProvider
     from app.providers.openwindmap import OpenWindMapProvider
-    
+
     url = data.station_visual_url.strip()
-    
+
     try:
         if "balisemeteo.com" in url or "ffvl" in url.lower():
             provider = FFVLProvider()
@@ -125,8 +128,10 @@ def create_channel(
         else:
             raise ValueError("URL non reconnue")
     except Exception as e:
-        raise HTTPException(status_code=400, detail=f"Impossible de résoudre la station: {str(e)}")
-    
+        raise HTTPException(
+            status_code=400, detail=f"Impossible de résoudre la station: {str(e)}"
+        )
+
     # Créer le canal
     channel = Channel(
         name=data.name,
@@ -143,32 +148,32 @@ def create_channel(
         min_interval_between_tx_seconds=data.min_interval_between_tx_seconds,
         lead_ms=data.lead_ms,
         tail_ms=data.tail_ms,
-        is_enabled=False  # Désactivé par défaut
+        is_enabled=False,  # Désactivé par défaut
     )
     db.add(channel)
     db.flush()
-    
+
     # Créer le runtime associé
     runtime = ChannelRuntime(
         channel_id=channel.id,
         last_measurement_at=None,
         next_tx_at=None,
-        last_error=None
+        last_error=None,
     )
     db.add(runtime)
-    
+
     # Audit log
     audit = AuditLog(
         user_id=current_user.id,
         action="CREATE_CHANNEL",
         details_json=f"Canal '{data.name}' créé (provider: {provider_id}, station: {station_id})",
-        ip_address="127.0.0.1"
+        ip_address="127.0.0.1",
     )
     db.add(audit)
-    
+
     db.commit()
     db.refresh(channel)
-    
+
     return channel
 
 
@@ -177,14 +182,14 @@ def update_channel(
     channel_id: int,
     data: ChannelUpdate,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Met à jour un canal."""
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
-    
+
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
-    
+
     # Mettre à jour les champs fournis
     if data.name is not None:
         channel.name = data.name
@@ -206,21 +211,21 @@ def update_channel(
         channel.lead_ms = data.lead_ms
     if data.tail_ms is not None:
         channel.tail_ms = data.tail_ms
-    
+
     channel.updated_at = datetime.datetime.now(datetime.timezone.utc)
-    
+
     # Audit log
     audit = AuditLog(
         user_id=current_user.id,
         action="UPDATE_CHANNEL",
         details_json=f"Canal '{channel.name}' (ID: {channel_id}) mis à jour",
-        ip_address="127.0.0.1"
+        ip_address="127.0.0.1",
     )
     db.add(audit)
-    
+
     db.commit()
     db.refresh(channel)
-    
+
     return channel
 
 
@@ -228,37 +233,37 @@ def update_channel(
 def delete_channel(
     channel_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Supprime un canal."""
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
-    
+
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
-    
+
     channel_name = channel.name
-    
+
     # Supprimer le runtime associé
-    runtime = db.query(ChannelRuntime).filter(
-        ChannelRuntime.channel_id == channel_id
-    ).first()
+    runtime = (
+        db.query(ChannelRuntime).filter(ChannelRuntime.channel_id == channel_id).first()
+    )
     if runtime:
         db.delete(runtime)
-    
+
     # Supprimer le canal
     db.delete(channel)
-    
+
     # Audit log
     audit = AuditLog(
         user_id=current_user.id,
         action="DELETE_CHANNEL",
         details_json=f"Canal '{channel_name}' (ID: {channel_id}) supprimé",
-        ip_address="127.0.0.1"
+        ip_address="127.0.0.1",
     )
     db.add(audit)
-    
+
     db.commit()
-    
+
     return {"message": "Canal supprimé avec succès"}
 
 
@@ -266,29 +271,29 @@ def delete_channel(
 def toggle_channel(
     channel_id: int,
     db: Session = Depends(get_db),
-    current_user = Depends(get_current_user)
+    current_user=Depends(get_current_user),
 ):
     """Active/désactive un canal."""
     channel = db.query(Channel).filter(Channel.id == channel_id).first()
-    
+
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
-    
+
     channel.is_enabled = not channel.is_enabled
     channel.updated_at = datetime.datetime.now(datetime.timezone.utc)
-    
+
     # Audit log
     audit = AuditLog(
         user_id=current_user.id,
         action="TOGGLE_CHANNEL",
         details_json=f"Canal '{channel.name}' (ID: {channel_id}) {'activé' if channel.is_enabled else 'désactivé'}",
-        ip_address="127.0.0.1"
+        ip_address="127.0.0.1",
     )
     db.add(audit)
-    
+
     db.commit()
-    
+
     return {
         "message": f"Canal {'activé' if channel.is_enabled else 'désactivé'}",
-        "is_enabled": channel.is_enabled
+        "is_enabled": channel.is_enabled,
     }

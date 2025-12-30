@@ -1,11 +1,13 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Balises - Passerelle VHF</title>
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
+
 <body>
     <div class="app-container">
         <!-- Sidebar -->
@@ -45,7 +47,7 @@
                 </button>
             </div>
         </aside>
-        
+
         <!-- Main content -->
         <main class="main-content">
             <header class="page-header">
@@ -54,7 +56,7 @@
                     <button id="newChannelBtn" class="btn btn-primary">+ Nouvelle balise</button>
                 </div>
             </header>
-            
+
             <div class="content">
                 <div class="card">
                     <div class="card-header">
@@ -67,7 +69,7 @@
                     </div>
                 </div>
             </div>
-            
+
             <!-- Modal création/édition canal -->
             <div id="channelModal" class="modal" style="display: none;">
                 <div class="modal-content">
@@ -81,27 +83,33 @@
                                 <label for="channel_name">Nom de la balise *</label>
                                 <input type="text" id="channel_name" required placeholder="Ex: Tallard">
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="station_url">URL de la station météo *</label>
-                                <input type="text" id="station_url" required placeholder="https://www.balisemeteo.com/balise.php?idBalise=67">
-                                <small class="text-muted">FFVL (balisemeteo.com) ou OpenWindMap (openwindmap.org)</small>
+                                <input type="text" id="station_url" required
+                                    placeholder="https://www.balisemeteo.com/balise.php?idBalise=67">
+                                <small class="text-muted">FFVL (balisemeteo.com) ou OpenWindMap
+                                    (openwindmap.org)</small>
                             </div>
-                            
+
                             <div class="form-group">
                                 <label for="template">Template d'annonce *</label>
-                                <textarea id="template" required rows="3" placeholder="Station {station_name}, vent moyen {wind_avg_kmh} kilomètres par heure, rafales {wind_max_kmh}."></textarea>
-                                <small class="text-muted">Variables: {station_name}, {wind_avg_kmh}, {wind_max_kmh}, {measurement_age_minutes}</small>
+                                <textarea id="template" required rows="3"
+                                    placeholder="Station {station_name}, vent moyen {wind_avg_kmh} kilomètres par heure, rafales {wind_max_kmh}."></textarea>
+                                <small class="text-muted">Variables: {station_name}, {wind_avg_kmh}, {wind_max_kmh},
+                                    {measurement_age_minutes}</small>
                             </div>
-                            
+
                             <div class="form-group">
-                                <label for="offsets">Offsets de transmission (secondes, séparés par des virgules)</label>
+                                <label for="offsets">Offsets de transmission (secondes, séparés par des
+                                    virgules)</label>
                                 <input type="text" id="offsets" value="0" placeholder="0, 1200, 2400">
-                                <small class="text-muted">Ex: 0 = immédiat, 1200 = 20 min après mesure, 2400 = 40 min après</small>
+                                <small class="text-muted">Ex: 0 = immédiat, 1200 = 20 min après mesure, 2400 = 40 min
+                                    après</small>
                             </div>
-                            
+
                             <div id="form-error" class="error-message" style="display: none;"></div>
-                            
+
                             <div class="modal-footer">
                                 <button type="button" id="cancelBtn" class="btn btn-secondary">Annuler</button>
                                 <button type="submit" class="btn btn-primary">Enregistrer</button>
@@ -112,8 +120,9 @@
             </div>
         </main>
     </div>
-    
+
     <script src="/static/js/common.js"></script>
     <script src="/static/js/channels.js"></script>
 </body>
+
 </html>

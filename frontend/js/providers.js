@@ -9,14 +9,14 @@ async function loadProviders() {
                 'Authorization': `Bearer ${token}`
             }
         });
-        
+
         if (response.ok) {
             const providers = await response.json();
-            
+
             // Afficher le statut FFVL
             const ffvl = providers.find(p => p.provider_id === 'ffvl');
             const statusDiv = document.getElementById('ffvl-status');
-            
+
             if (ffvl && ffvl.is_configured) {
                 statusDiv.innerHTML = '<div class="success-message">✓ Clé API configurée</div>';
             } else {
@@ -31,15 +31,15 @@ async function loadProviders() {
 // Sauvegarder la clé FFVL
 document.getElementById('ffvlForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const apiKey = document.getElementById('ffvl_api_key').value.trim();
     const statusDiv = document.getElementById('ffvl-status');
-    
+
     if (!apiKey) {
         statusDiv.innerHTML = '<div class="error-message">Veuillez saisir une clé API</div>';
         return;
     }
-    
+
     try {
         const response = await fetch('/api/providers/credentials', {
             method: 'POST',
@@ -52,7 +52,7 @@ document.getElementById('ffvlForm').addEventListener('submit', async (e) => {
                 api_key: apiKey
             })
         });
-        
+
         if (response.ok) {
             statusDiv.innerHTML = '<div class="success-message">✓ Clé API enregistrée avec succès</div>';
             document.getElementById('ffvl_api_key').value = '';

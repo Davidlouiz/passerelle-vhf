@@ -12,25 +12,25 @@ function checkAuth() {
 async function apiRequest(url, options = {}) {
     const token = checkAuth();
     if (!token) return;
-    
+
     const headers = {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${token}`,
         ...options.headers
     };
-    
+
     const response = await fetch(url, {
         ...options,
         headers
     });
-    
+
     if (response.status === 401) {
         // Token expiré
         localStorage.removeItem('token');
         window.location.href = '/';
         return;
     }
-    
+
     return response;
 }
 
@@ -39,7 +39,7 @@ async function loadSystemStatus() {
     try {
         const response = await apiRequest('/api/status');
         if (!response) return;
-        
+
         if (response.ok) {
             const data = await response.json();
             updateDashboard(data);
@@ -53,10 +53,10 @@ async function loadSystemStatus() {
 function updateDashboard(data) {
     // TODO: mettre à jour les éléments du dashboard
     // Pour l'instant, juste des placeholders
-    
-    document.getElementById('master-enabled').textContent = 
+
+    document.getElementById('master-enabled').textContent =
         data.master_enabled ? '✓ Activé' : '✗ Désactivé';
-    
+
     const statusBadge = document.getElementById('system-status');
     if (data.master_enabled) {
         statusBadge.textContent = 'Système actif';

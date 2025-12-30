@@ -1,6 +1,7 @@
 """
 Gestion de l'authentification et des sessions.
 """
+
 from datetime import datetime, timedelta
 from typing import Optional
 from jose import JWTError, jwt
@@ -10,7 +11,9 @@ from sqlalchemy.orm import Session
 from app.models import User
 
 # Configuration
-SECRET_KEY = "CHANGEME_IN_PRODUCTION_USE_ENV_VAR"  # TODO: utiliser variable d'environnement
+SECRET_KEY = (
+    "CHANGEME_IN_PRODUCTION_USE_ENV_VAR"  # TODO: utiliser variable d'environnement
+)
 ALGORITHM = "HS256"
 ACCESS_TOKEN_EXPIRE_MINUTES = 480  # 8 heures
 
@@ -30,7 +33,7 @@ def hash_password(password: str) -> str:
 def authenticate_user(db: Session, username: str, password: str) -> Optional[User]:
     """
     Authentifie un utilisateur.
-    
+
     Returns:
         User si authentification réussie, None sinon
     """
@@ -68,10 +71,10 @@ def get_current_user(db: Session, token: str) -> Optional[User]:
     payload = decode_access_token(token)
     if payload is None:
         return None
-    
+
     username: str = payload.get("sub")
     if username is None:
         return None
-    
+
     user = db.query(User).filter(User.username == username).first()
     return user

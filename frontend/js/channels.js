@@ -8,7 +8,7 @@ async function loadChannels() {
         const response = await fetch('/api/channels/', {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             const channels = await response.json();
             displayChannels(channels);
@@ -21,7 +21,7 @@ async function loadChannels() {
 // Afficher les canaux
 function displayChannels(channels) {
     const container = document.getElementById('channelsList');
-    
+
     if (channels.length === 0) {
         container.innerHTML = `
             <p class="text-muted">Aucune balise configurée pour le moment.</p>
@@ -29,7 +29,7 @@ function displayChannels(channels) {
         `;
         return;
     }
-    
+
     const html = `
         <table class="table">
             <thead>
@@ -37,6 +37,7 @@ function displayChannels(channels) {
                     <th>Nom</th>
                     <th>Provider</th>
                     <th>Statut</th>
+                    <th>Test</th>
                     <th>Actions</th>
                 </tr>
             </thead>
@@ -51,6 +52,11 @@ function displayChannels(channels) {
                             </span>
                         </td>
                         <td>
+                            <button onclick="testMeasurement(${ch.id}, '${ch.provider_id}', '${ch.station_id}')" class="btn btn-sm btn-info" title="Tester récupération mesure">
+                                🌡️ Test
+                            </button>
+                        </td>
+                        <td>
                             <button onclick="toggleChannel(${ch.id})" class="btn btn-sm ${ch.is_enabled ? 'btn-secondary' : 'btn-success'}">
                                 ${ch.is_enabled ? 'Désactiver' : 'Activer'}
                             </button>
@@ -62,7 +68,7 @@ function displayChannels(channels) {
             </tbody>
         </table>
     `;
-    
+
     container.innerHTML = html;
 }
 
@@ -86,29 +92,29 @@ function closeModal() {
 // Soumettre le formulaire
 document.getElementById('channelForm').addEventListener('submit', async (e) => {
     e.preventDefault();
-    
+
     const name = document.getElementById('channel_name').value.trim();
     const stationUrl = document.getElementById('station_url').value.trim();
     const template = document.getElementById('template').value.trim();
     const offsetsStr = document.getElementById('offsets').value.trim();
-    
+
     // Parser les offsets
     const offsets = offsetsStr.split(',').map(s => parseInt(s.trim())).filter(n => !isNaN(n));
-    
+
     const data = {
         name,
         station_visual_url: stationUrl,
         template_text: template,
         offsets_seconds_json: JSON.stringify(offsets)
     };
-    
+
     const errorDiv = document.getElementById('form-error');
     errorDiv.style.display = 'none';
-    
+
     try {
         const url = currentChannelId ? `/api/channels/${currentChannelId}` : '/api/channels/';
         const method = currentChannelId ? 'PUT' : 'POST';
-        
+
         const response = await fetch(url, {
             method,
             headers: {
@@ -117,7 +123,7 @@ document.getElementById('channelForm').addEventListener('submit', async (e) => {
             },
             body: JSON.stringify(data)
         });
-        
+
         if (response.ok) {
             closeModal();
             loadChannels();
@@ -146,7 +152,7 @@ async function toggleChannel(channelId) {
             method: 'POST',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             loadChannels();
         }
@@ -161,20 +167,20 @@ async function editChannel(channelId) {
         const response = await fetch(`/api/channels/${channelId}`, {
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             const channel = await response.json();
             currentChannelId = channelId;
-            
+
             document.getElementById('modalTitle').textContent = 'Éditer la balise';
             document.getElementById('channel_name').value = channel.name;
             document.getElementById('station_url').value = channel.station_visual_url_cache;
 
             document.getElementById('template').value = channel.template_text;
-            
+
             const offsets = JSON.parse(channel.offsets_seconds_json);
             document.getElementById('offsets').value = offsets.join(', ');
-            
+
             document.getElementById('channelModal').style.display = 'flex';
         }
     } catch (err) {
@@ -187,18 +193,64 @@ async function deleteChannel(channelId, channelName) {
     if (!confirm(`Voulez-vous vraiment supprimer la balise "${channelName}" ?`)) {
         return;
     }
-    
+
     try {
         const response = await fetch(`/api/channels/${channelId}`, {
             method: 'DELETE',
             headers: { 'Authorization': `Bearer ${token}` }
         });
-        
+
         if (response.ok) {
             loadChannels();
         }
     } catch (err) {
         console.error('Erreur:', err);
+    }
+}
+
+// Tester la récupération de mesure
+async function testMeasurement(channelId, providerId, stationId) {
+    const btn = event.target;
+    const originalText = btn.innerHTML;
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Test...';
+
+    try {
+        const response = await fetch('/api/providers/test-measurement', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}`
+            },
+            body: JSON.stringify({
+                provider_id: providerId,
+                station_id: stationId
+            })
+        });
+
+        if (response.ok) {
+            const data = await response.json();
+            const date = new Date(data.measurement_at);
+            const age = Math.round((Date.now() - date.getTime()) / 60000); // minutes
+            
+            alert(
+                `✅ Mesure récupérée avec succès!\n\n` +
+                `📅 Date: ${date.toLocaleString('fr-FR')}\n` +
+                `⏰ Âge: ${age} minute(s)\n` +
+                `💨 Vent moyen: ${data.wind_avg_kmh.toFixed(1)} km/h\n` +
+                `💨 Rafales: ${data.wind_max_kmh.toFixed(1)} km/h` +
+                (data.wind_min_kmh ? `\n💨 Vent mini: ${data.wind_min_kmh.toFixed(1)} km/h` : '')
+            );
+        } else {
+            const error = await response.json();
+            alert(`❌ Erreur: ${error.detail || 'Erreur inconnue'}`);
+        }
+    } catch (err) {
+        console.error('Erreur:', err);
+        alert(`❌ Erreur lors du test: ${err.message}`);
+    } finally {
+        btn.disabled = false;
+        btn.innerHTML = originalText;
     }
 }
 

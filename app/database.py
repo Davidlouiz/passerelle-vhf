@@ -1,6 +1,7 @@
 """
 Configuration et connexion à la base de données SQLite.
 """
+
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
 from sqlalchemy.pool import StaticPool
@@ -12,7 +13,14 @@ import os
 from app.models import Base
 
 # Chemin vers la base de données
-DATA_DIR = Path(os.getenv("VHF_DATA_DIR", "/opt/vhf-balise/data"))
+# En développement, utilise le dossier local data/
+# En production, utilise VHF_DATA_DIR qui doit être défini (/opt/vhf-balise/data)
+if os.getenv("VHF_DATA_DIR"):
+    DATA_DIR = Path(os.getenv("VHF_DATA_DIR"))
+else:
+    # Mode développement: utiliser dossier local
+    DATA_DIR = Path(__file__).parent.parent / "data"
+
 DATA_DIR.mkdir(parents=True, exist_ok=True)
 
 DATABASE_URL = f"sqlite:///{DATA_DIR}/vhf-balise.db"
@@ -22,7 +30,7 @@ engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
-    echo=False  # True pour debug SQL
+    echo=False,  # True pour debug SQL
 )
 
 # Session factory
@@ -38,7 +46,7 @@ def init_db():
 def get_db() -> Generator[Session, None, None]:
     """
     Dependency pour FastAPI - fournit une session DB.
-    
+
     Utilisation:
         @app.get("/...")
         def endpoint(db: Session = Depends(get_db)):
@@ -55,7 +63,7 @@ def get_db() -> Generator[Session, None, None]:
 def get_db_session():
     """
     Context manager pour obtenir une session DB (usage hors FastAPI).
-    
+
     Utilisation:
         with get_db_session() as db:
             db.query(...)

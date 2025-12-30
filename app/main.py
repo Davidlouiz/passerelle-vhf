@@ -3,6 +3,7 @@ Application FastAPI principale.
 
 Point d'entrée de l'API et serveur de fichiers statiques.
 """
+
 from fastapi import FastAPI, Request
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
@@ -15,7 +16,7 @@ from app.database import init_db
 app = FastAPI(
     title="Passerelle VHF",
     description="Système d'annonces vocales pour balises météo sur radio VHF",
-    version="1.0.0"
+    version="1.0.0",
 )
 
 # CORS (pour développement)
@@ -27,14 +28,17 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+
 # Initialiser la DB au démarrage
 @app.on_event("startup")
 async def startup_event():
     """Initialise la base de données au démarrage."""
     init_db()
 
+
 # Ajouter les routers
 from app.routers import auth, status, providers, channels
+
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
 app.include_router(status.router, prefix="/api/status", tags=["Statut"])
 app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
@@ -48,11 +52,12 @@ app.include_router(channels.router, prefix="/api/channels", tags=["Canaux"])
 frontend_path = Path(__file__).parent.parent / "frontend"
 if frontend_path.exists():
     app.mount("/static", StaticFiles(directory=str(frontend_path)), name="static")
-    
+
     @app.get("/")
     async def serve_frontend():
         """Sert la page d'accueil."""
         return FileResponse(str(frontend_path / "index.html"))
+
 
 # Endpoint de santé
 @app.get("/health")
