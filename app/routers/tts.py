@@ -127,8 +127,14 @@ async def synthesize_text(
 
 
 @router.get("/audio/{filename}")
-async def serve_audio(filename: str, current_user=Depends(get_current_user)):
-    """Sert un fichier audio synthétisé."""
+async def serve_audio(filename: str):
+    """
+    Sert un fichier audio synthétisé.
+    
+    Note: Pas d'authentification requise car les fichiers sont déjà générés
+    après authentification et les noms sont hashés (difficiles à deviner).
+    Cela permet au navigateur de charger l'audio via la balise <audio>.
+    """
     # Sécurité : vérifier que le filename ne contient pas de chemins
     if "/" in filename or ".." in filename:
         raise HTTPException(status_code=400, detail="Nom de fichier invalide")
