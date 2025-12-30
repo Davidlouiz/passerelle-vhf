@@ -82,14 +82,8 @@ class PiperEngine(TTSEngine):
                 "file": "fr_FR-gilles-low.onnx",
             },
             {
-                "id": "fr_FR-mls-medium",
-                "label": "MLS (Féminine, Douce) - Medium",
-                "languages": ["fr"],
-                "file": "fr_FR-mls-medium.onnx",
-            },
-            {
                 "id": "fr_FR-siwis-low",
-                "label": "Siwis (Féminine, Claire) - Low",
+                "label": "Siwis (Féminine, Claire, Rapide) - Low",
                 "languages": ["fr"],
                 "file": "fr_FR-siwis-low.onnx",
             },
