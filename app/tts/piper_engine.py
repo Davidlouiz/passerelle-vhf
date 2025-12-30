@@ -4,10 +4,15 @@ Moteur TTS Piper.
 Synthèse vocale hors ligne avec Piper (https://github.com/rhasspy/piper).
 """
 
-import subprocess
 from pathlib import Path
 from typing import List, Dict, Optional
 import json
+import wave
+
+try:
+    from piper import PiperVoice
+except ImportError:
+    PiperVoice = None
 
 from app.tts import TTSEngine, Voice
 from app.exceptions import TTSError
@@ -41,12 +46,8 @@ class PiperEngine(TTSEngine):
     def engine_version(self) -> str:
         """Récupère la version de Piper installée."""
         try:
-            result = subprocess.run(
-                ["piper", "--version"], capture_output=True, text=True, timeout=5
-            )
-            # Parse "piper 1.2.0" -> "1.2.0"
-            version = result.stdout.strip().split()[-1] if result.stdout else "unknown"
-            return version
+            import piper
+            return getattr(piper, "__version__", "1.3.0")
         except Exception:
             return "unknown"
 
@@ -98,36 +99,31 @@ class PiperEngine(TTSEngine):
         self, text: str, voice_id: str, output_path: str, params: Optional[Dict] = None
     ) -> str:
         """
-        Synthétise un texte avec Piper.
+        Synthétise un texte avec Piper (API Python).
 
-        Commande: echo "texte" | piper -m model.onnx -f output.wav
+        Utilise piper-tts avec synthesize_wav() qui nécessite un objet wave.
         """
+        if PiperVoice is None:
+            raise TTSError("piper-tts n'est pas installé. Installez avec: pip install piper-tts")
+
         # Vérifier que la voix existe
         model_file = f"{voice_id}.onnx"
         model_path = self.models_dir / model_file
+        config_path = self.models_dir / f"{voice_id}.onnx.json"
 
         if not model_path.exists():
             raise TTSError(f"Modèle Piper non trouvé: {model_path}")
-
-        # Paramètres optionnels
-        params = params or {}
-        speaker_id = params.get("speaker", None)
+        
+        if not config_path.exists():
+            raise TTSError(f"Config Piper non trouvée: {config_path}")
 
         try:
-            # Construire la commande Piper
-            cmd = ["piper", "--model", str(model_path), "--output_file", output_path]
+            # Charger le modèle
+            voice = PiperVoice.load(str(model_path), config_path=str(config_path))
 
-            if speaker_id is not None:
-                cmd.extend(["--speaker", str(speaker_id)])
-
-            # Exécuter Piper avec le texte en stdin
-            result = subprocess.run(
-                cmd,
-                input=text.encode("utf-8"),
-                capture_output=True,
-                timeout=30,
-                check=True,
-            )
+            # Synthétiser dans un fichier WAV
+            with wave.open(output_path, "wb") as wav_file:
+                voice.synthesize_wav(text, wav_file)
 
             # Vérifier que le fichier a été créé
             if not Path(output_path).exists():
@@ -135,10 +131,6 @@ class PiperEngine(TTSEngine):
 
             return output_path
 
-        except subprocess.TimeoutExpired:
-            raise TTSError(f"Timeout lors de la synthèse avec Piper (>30s)")
-        except subprocess.CalledProcessError as e:
-            raise TTSError(f"Erreur Piper: {e.stderr.decode() if e.stderr else str(e)}")
         except Exception as e:
             raise TTSError(f"Erreur lors de la synthèse Piper: {e}")
 
