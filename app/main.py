@@ -4,13 +4,14 @@ Application FastAPI principale.
 Point d'entrée de l'API et serveur de fichiers statiques.
 """
 
-from fastapi import FastAPI, Request
+from fastapi import FastAPI
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
 from app.database import init_db
+from app.routers import auth, status, providers, channels, tts
 
 # Créer l'application
 app = FastAPI(
@@ -32,21 +33,22 @@ app.add_middleware(
 # Initialiser la DB au démarrage
 @app.on_event("startup")
 async def startup_event():
-    """Initialise la base de données au démarrage."""
+    """Initialise la base de données et le moteur TTS au démarrage."""
     init_db()
+    # Initialiser le moteur TTS en arrière-plan pour éviter de bloquer le démarrage
+    from app.routers.tts import init_tts_engine
+    try:
+        init_tts_engine()
+    except Exception as e:
+        print(f"⚠️  Erreur lors de l'initialisation du moteur TTS: {e}")
 
 
 # Ajouter les routers
-from app.routers import auth, status, providers, channels
-
 app.include_router(auth.router, prefix="/api/auth", tags=["Authentification"])
 app.include_router(status.router, prefix="/api/status", tags=["Statut"])
 app.include_router(providers.router, prefix="/api/providers", tags=["Providers"])
 app.include_router(channels.router, prefix="/api/channels", tags=["Canaux"])
-
-# TODO: Ajouter les autres routers
-# from app.routers import tts
-# app.include_router(tts.router, prefix="/api/tts", tags=["tts"])
+app.include_router(tts.router, prefix="/api/tts", tags=["TTS"])
 
 # Servir les fichiers statiques du frontend
 frontend_path = Path(__file__).parent.parent / "frontend"

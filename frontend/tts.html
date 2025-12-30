@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test TTS - Passerelle VHF</title>
+    <link rel="stylesheet" href="/static/css/style.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-header">
+                <h2>🌊 VHF</h2>
+            </div>
+            <nav class="sidebar-nav">
+                <a href="/static/dashboard.html" class="nav-item">
+                    <span class="icon">📊</span>
+                    Tableau de bord
+                </a>
+                <a href="/static/channels.html" class="nav-item">
+                    <span class="icon">📡</span>
+                    Balises
+                </a>
+                <a href="/static/providers.html" class="nav-item">
+                    <span class="icon">🌐</span>
+                    Providers
+                </a>
+                <a href="/static/tts.html" class="nav-item active">
+                    <span class="icon">🔊</span>
+                    Test TTS
+                </a>
+                <a href="/static/history.html" class="nav-item">
+                    <span class="icon">📝</span>
+                    Historique TX
+                </a>
+                <a href="/static/settings.html" class="nav-item">
+                    <span class="icon">⚙️</span>
+                    Paramètres
+                </a>
+                <a href="/static/admin.html" class="nav-item">
+                    <span class="icon">👤</span>
+                    Administration
+                </a>
+            </nav>
+            <div class="sidebar-footer">
+                <button id="logoutBtn" class="btn btn-sm btn-secondary btn-block">
+                    Déconnexion
+                </button>
+            </div>
+        </aside>
+
+        <!-- Main content -->
+        <main class="main-content">
+            <header class="page-header">
+                <h1>🔊 Test de synthèse vocale</h1>
+                <div class="header-actions">
+                    <span class="badge badge-info">Piper TTS</span>
+                </div>
+            </header>
+
+            <div class="content">
+            <section class="card">
+                <h2>Synthèse vocale Piper</h2>
+                <p class="info-text">
+                    Testez la synthèse vocale hors ligne avec différentes voix françaises.
+                    Le texte sera converti en audio et joué directement dans votre navigateur.
+                </p>
+
+                <div class="form-group">
+                    <label for="voice-select">Voix :</label>
+                    <select id="voice-select" class="form-control">
+                        <option value="">Chargement des voix...</option>
+                    </select>
+                    <small class="help-text">Sélectionnez la voix à utiliser pour la synthèse</small>
+                </div>
+
+                <div class="form-group">
+                    <label for="text-input">Texte à synthétiser :</label>
+                    <textarea 
+                        id="text-input" 
+                        class="form-control" 
+                        rows="6"
+                        placeholder="Tapez le texte à synthétiser ici...&#10;&#10;Exemple : Station Commes, vent moyen 15 kilomètres par heure, rafales 25."
+                    ></textarea>
+                    <small class="help-text">Tapez le texte que vous souhaitez entendre</small>
+                </div>
+
+                <div class="form-actions">
+                    <button id="synthesize-btn" class="btn btn-primary" onclick="synthesizeAndPlay()">
+                        🔊 Synthétiser et écouter
+                    </button>
+                    <button id="stop-btn" class="btn btn-secondary" onclick="stopAudio()" style="display: none;">
+                        ⏹️ Arrêter
+                    </button>
+                </div>
+
+                <div id="audio-status" class="status-message" style="display: none;"></div>
+                <div id="audio-player" style="display: none; margin-top: 20px;">
+                    <audio id="audio-element" controls style="width: 100%;"></audio>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3>Exemples de textes</h3>
+                <div class="examples-grid">
+                    <button class="example-btn" onclick="loadExample(this)">
+                        Station Commes, vent moyen 15 kilomètres par heure, rafales 25.
+                    </button>
+                    <button class="example-btn" onclick="loadExample(this)">
+                        Station La Féclaz, vent moyen 8 kilomètres par heure, rafales 12, mesuré il y a 5 minutes.
+                    </button>
+                    <button class="example-btn" onclick="loadExample(this)">
+                        Ici balise Chamrousse. Vent moyen 20 kilomètres par heure, rafales 35. Bonne journée.
+                    </button>
+                    <button class="example-btn" onclick="loadExample(this)">
+                        Balise météo Annecy. Conditions actuelles : vent calme, moins de 5 kilomètres par heure.
+                    </button>
+                </div>
+            </section>
+
+            <section class="card">
+                <h3>Informations techniques</h3>
+                <ul class="info-list">
+                    <li><strong>Moteur TTS :</strong> Piper (synthèse hors ligne)</li>
+                    <li><strong>Voix disponibles :</strong> <span id="voice-count">0</span></li>
+                    <li><strong>Format audio :</strong> WAV 22050 Hz mono</li>
+                    <li><strong>Cache :</strong> Les audios synthétisés sont mis en cache (réutilisation automatique)</li>
+                </ul>
+            </section>
+            </div>
+        </main>
+    </div>
+
+    <script src="/static/js/auth.js"></script>
+    <script src="/static/js/tts.js"></script>
+</body>
+</html>
