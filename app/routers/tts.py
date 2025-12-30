@@ -7,6 +7,7 @@ from fastapi.responses import FileResponse
 from pydantic import BaseModel
 from typing import List
 import hashlib
+import wave
 
 from app.dependencies import get_current_user
 from app.tts.piper_engine import PiperEngine
@@ -33,6 +34,8 @@ class SynthesizeResponse(BaseModel):
     """Réponse avec le chemin du fichier audio."""
     audio_path: str
     audio_url: str
+    duration_seconds: float
+    file_size_bytes: int
 
 
 # Instance globale du moteur TTS (initialisée au démarrage de l'app)
@@ -98,9 +101,25 @@ async def synthesize_text(
         # Synthétiser
         engine.synthesize(request.text, request.voice_id, str(output_path))
         
+        # Calculer la durée et la taille du fichier
+        file_size = output_path.stat().st_size
+        
+        # Lire la durée du fichier WAV
+        duration = 0.0
+        try:
+            with wave.open(str(output_path), 'rb') as wav_file:
+                frames = wav_file.getnframes()
+                rate = wav_file.getframerate()
+                duration = frames / float(rate)
+        except Exception:
+            # Si on ne peut pas lire la durée, on l'estime à partir de la taille
+            duration = file_size / 44100  # Estimation grossière
+        
         return SynthesizeResponse(
             audio_path=str(output_path),
-            audio_url=f"/api/tts/audio/{filename}"
+            audio_url=f"/api/tts/audio/{filename}",
+            duration_seconds=duration,
+            file_size_bytes=file_size
         )
         
     except Exception as e:

@@ -119,7 +119,14 @@ async function synthesizeAndPlay() {
             stopBtn.style.display = 'none';
         };
 
-        showStatus('success', `✅ Audio synthétisé avec succès ! (${result.duration_seconds.toFixed(1)}s, ${result.file_size_bytes} octets)`);
+        // Construire le message de succès avec les infos disponibles
+        let successMessage = '✅ Audio synthétisé avec succès !';
+        if (result.duration_seconds !== undefined && result.file_size_bytes !== undefined) {
+            const durationStr = result.duration_seconds.toFixed(1);
+            const sizeKb = (result.file_size_bytes / 1024).toFixed(1);
+            successMessage += ` (${durationStr}s, ${sizeKb} Ko)`;
+        }
+        showStatus('success', successMessage);
 
     } catch (error) {
         console.error('Erreur:', error);
