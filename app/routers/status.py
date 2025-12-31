@@ -1,10 +1,11 @@
 """Router pour le statut système."""
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from sqlalchemy import desc
 from datetime import datetime, timedelta
 import subprocess
+import os
 
 from app.database import get_db
 from app.models import SystemSettings, Channel, ChannelRuntime, TxHistory
@@ -120,3 +121,59 @@ def get_system_status(db: Session = Depends(get_db)):
         "channels_stats": channels_stats,
         "recent_tx": recent_tx_list,
     }
+
+
+@router.post("/runner/start")
+def start_runner():
+    """Démarre le processus runner."""
+    try:
+        # Vérifier si déjà en cours
+        status = check_runner_status()
+        if status == "running":
+            raise HTTPException(status_code=400, detail="Le runner est déjà en cours d'exécution")
+        
+        # Déterminer le chemin Python à utiliser
+        venv_python = "/home/david/git/Passerelle VHF/venv/bin/python"
+        python_cmd = venv_python if os.path.exists(venv_python) else "python3"
+        
+        # Démarrer le runner en arrière-plan
+        subprocess.Popen(
+            [python_cmd, "-m", "app.runner"],
+            cwd="/home/david/git/Passerelle VHF",
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+            start_new_session=True,
+        )
+        
+        return {"status": "success", "message": "Runner démarré"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur au démarrage du runner: {str(e)}")
+
+
+@router.post("/runner/stop")
+def stop_runner():
+    """Arrête le processus runner."""
+    try:
+        # Vérifier si en cours
+        status = check_runner_status()
+        if status == "stopped":
+            raise HTTPException(status_code=400, detail="Le runner n'est pas en cours d'exécution")
+        
+        # Arrêter le runner
+        result = subprocess.run(
+            ["pkill", "-f", "python.*app.runner"],
+            capture_output=True,
+            text=True,
+            timeout=5,
+        )
+        
+        if result.returncode not in [0, 1]:  # 1 = pas de processus trouvé
+            raise HTTPException(status_code=500, detail="Erreur lors de l'arrêt du runner")
+        
+        return {"status": "success", "message": "Runner arrêté"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Erreur à l'arrêt du runner: {str(e)}")

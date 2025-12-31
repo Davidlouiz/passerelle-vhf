@@ -28,8 +28,27 @@ function updateDashboard(data) {
     document.getElementById('tx-lock-status').textContent =
         data.tx_lock_active ? '🔒 Occupé' : '✓ Libre';
     
-    document.getElementById('runner-status').textContent =
-        data.runner_status === 'unknown' ? 'État inconnu' : data.runner_status;
+    // Runner status avec boutons de contrôle
+    const runnerStatusEl = document.getElementById('runner-status');
+    const runnerStatus = data.runner_status;
+    
+    if (runnerStatus === 'running') {
+        runnerStatusEl.innerHTML = `
+            <span class="text-success">✓ En cours</span>
+            <button onclick="stopRunner()" class="btn btn-sm btn-danger" style="margin-left: 10px;">
+                Arrêter
+            </button>
+        `;
+    } else if (runnerStatus === 'stopped') {
+        runnerStatusEl.innerHTML = `
+            <span class="text-danger">✗ Arrêté</span>
+            <button onclick="startRunner()" class="btn btn-sm btn-success" style="margin-left: 10px;">
+                Démarrer
+            </button>
+        `;
+    } else {
+        runnerStatusEl.textContent = 'État inconnu';
+    }
 
     const statusBadge = document.getElementById('system-status');
     if (data.master_enabled) {
@@ -169,11 +188,56 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
-// Déconnexion
-document.getElementById('logoutBtn').addEventListener('click', () => {
-    localStorage.removeItem('token');
-    window.location.href = '/';
-});
+// Démarrer le runner
+async function startRunner() {
+    try {
+        const response = await authenticatedFetch('/api/status/runner/start', {
+            method: 'POST'
+        });
+        
+        if (!response) return;
+        
+        if (response.ok) {
+            alert('Runner démarré avec succès');
+            loadSystemStatus(); // Rafraîchir immédiatement
+        } else {
+            const error = await response.json();
+            alert(`Erreur: ${error.detail || 'Impossible de démarrer le runner'}`);
+        }
+    } catch (err) {
+        console.error('Erreur lors du démarrage du runner:', err);
+        alert('Erreur lors du démarrage du runner');
+    }
+}
+
+// Arrêter le runner
+async function stopRunner() {
+    if (!confirm('Êtes-vous sûr de vouloir arrêter le runner ?')) {
+        return;
+    }
+    
+    try {
+        const response = await authenticatedFetch('/api/status/runner/stop', {
+            method: 'POST'
+        });
+        
+        if (!response) return;
+        
+        if (response.ok) {
+            alert('Runner arrêté avec succès');
+            loadSystemStatus(); // Rafraîchir immédiatement
+        } else {
+            const error = await response.json();
+            alert(`Erreur: ${error.detail || 'Impossible d\'arrêter le runner'}`);
+        }
+    } catch (err) {
+        console.error('Erreur lors de l\'arrêt du runner:', err);
+        alert('Erreur lors de l\'arrêt du runner');
+    }
+}
+
+// Déconnexion - maintenant géré par sidebar.js
+// Le code de logout est déplacé dans sidebar.js
 
 // Charger les données au démarrage
 checkAuth();
