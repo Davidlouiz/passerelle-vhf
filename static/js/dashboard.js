@@ -210,10 +210,6 @@ async function startRunner() {
 
 // Arrêter le runner
 async function stopRunner() {
-    if (!confirm('Êtes-vous sûr de vouloir arrêter le runner ?')) {
-        return;
-    }
-    
     try {
         const response = await authenticatedFetch('/api/status/runner/stop', {
             method: 'POST'
