@@ -158,7 +158,7 @@ class TransmissionService:
             stderr=asyncio.subprocess.PIPE,
         )
 
-        _, stderr = await proc.wait()
+        _, stderr = await proc.communicate()
 
         if proc.returncode != 0:
             # Si aplay échoue, essayer paplay (PulseAudio)
@@ -171,7 +171,7 @@ class TransmissionService:
                 stderr=asyncio.subprocess.PIPE,
             )
 
-            _, stderr = await proc.wait()
+            _, stderr = await proc.communicate()
 
             if proc.returncode != 0:
                 raise PTTError(f"Impossible de jouer l'audio: {stderr.decode()}")

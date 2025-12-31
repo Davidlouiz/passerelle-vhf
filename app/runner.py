@@ -258,60 +258,107 @@ class VHFRunner:
         """
         Planifie les transmissions pour une nouvelle mesure.
 
-        Politique V1 (cancel_on_new) : annule les futures TX non-exécutées.
+        Politique V1 (cancel_on_new) : annule les futures TX non-exécutées
+        et crée TOUTES les nouvelles TX dans tx_history.
         """
-        # POLITIQUE V1 : Annuler les futures TX PENDING de ce canal
-        future_pending = (
+        # POLITIQUE V1 : Annuler TOUTES les TX PENDING de ce canal (futures et passées)
+        pending_tx = (
             db.query(TxHistory)
             .filter(
                 TxHistory.channel_id == channel.id,
                 TxHistory.status == "PENDING",
-                TxHistory.planned_at > datetime.utcnow(),
             )
             .all()
         )
 
-        if future_pending:
-            for tx in future_pending:
+        if pending_tx:
+            for tx in pending_tx:
                 tx.status = "ABORTED"
                 tx.error_message = "Cancelled by new measurement (cancel_on_new policy)"
-            db.commit()
             logger.info(
-                f"Annulé {len(future_pending)} TX futures pour {channel.name} (nouvelle mesure)"
+                f"Annulé {len(pending_tx)} TX PENDING pour {channel.name} (nouvelle mesure)"
             )
 
-        # Calculer les tx_times depuis les offsets
+        # Calculer TOUTES les TX depuis les offsets et les créer dans tx_history
         import json
+        from app.utils import compute_hash
 
         offsets = json.loads(channel.offsets_seconds_json or "[0]")
-
-        # Trouver la prochaine TX valide (pas dans le passé)
-        next_valid_tx = None
+        created_count = 0
 
         for offset in offsets:
             planned_at = measurement.measurement_at + timedelta(seconds=offset)
+            
+            # Rendre le texte pour calculer tx_id
+            from app.services.template import TemplateRenderer
+            renderer = TemplateRenderer()
+            rendered_text = renderer.render(
+                channel.template_text,
+                station_name=channel.name,
+                wind_avg_kmh=measurement.wind_avg_kmh,
+                wind_max_kmh=measurement.wind_max_kmh,
+                wind_min_kmh=measurement.wind_min_kmh or 0,
+                wind_direction_deg=getattr(measurement, 'wind_direction_deg', None),
+                measurement_at=measurement.measurement_at
+            )
 
-            # Ne pas planifier dans le passé
-            if planned_at < datetime.utcnow():
-                logger.debug(
-                    f"Skip TX planifiée dans le passé : {planned_at} (offset {offset}s)"
-                )
+            # Calculer tx_id (idempotence)
+            tx_id = compute_hash(
+                channel.id,
+                channel.provider_id,
+                channel.station_id,
+                measurement.measurement_at.isoformat(),
+                rendered_text,
+                channel.engine_id,
+                channel.voice_id,
+                channel.voice_params_json or "{}",
+                offset,
+            )
+
+            # Vérifier si cette TX existe déjà (idempotence)
+            existing = db.query(TxHistory).filter_by(tx_id=tx_id).first()
+            if existing:
+                logger.debug(f"TX {tx_id[:12]}... existe déjà, skip")
                 continue
 
-            # Garder la plus proche TX valide
-            if next_valid_tx is None or planned_at < next_valid_tx:
-                next_valid_tx = planned_at
-
-        # Mettre à jour next_tx_at seulement si on a une TX valide
-        if next_valid_tx:
-            channel.runtime.next_tx_at = next_valid_tx
-            logger.info(f"TX planifiée pour {channel.name} à {next_valid_tx}")
-        else:
-            # Toutes les TX sont dans le passé, réinitialiser
-            channel.runtime.next_tx_at = None
-            logger.warning(
-                f"Aucune TX valide pour {channel.name} (toutes dans le passé)"
+            # Créer la TX avec status="PENDING"
+            tx_record = TxHistory(
+                tx_id=tx_id,
+                channel_id=channel.id,
+                mode="SCHEDULED",
+                status="PENDING",
+                station_id=str(channel.station_id),
+                measurement_at=measurement.measurement_at,
+                offset_seconds=offset,
+                planned_at=planned_at,
+                rendered_text=rendered_text,
             )
+            db.add(tx_record)
+            created_count += 1
+            logger.debug(f"Créé TX offset {offset}s pour {channel.name} à {planned_at}")
+
+        # Commit pour persister les TX
+        db.commit()
+
+        logger.info(f"Créé {created_count} TX PENDING pour {channel.name}")
+
+        # Calculer next_tx_at : la plus proche TX PENDING
+        next_pending = (
+            db.query(TxHistory)
+            .filter(
+                TxHistory.channel_id == channel.id,
+                TxHistory.status == "PENDING",
+            )
+            .order_by(TxHistory.planned_at)
+            .first()
+        )
+
+        if next_pending:
+            channel.runtime.next_tx_at = next_pending.planned_at
+            logger.info(f"Prochaine TX pour {channel.name} : {next_pending.planned_at}")
+        else:
+            channel.runtime.next_tx_at = None
+            logger.warning(f"Aucune TX PENDING pour {channel.name}")
 
         db.commit()
 
@@ -319,82 +366,94 @@ class VHFRunner:
         self, db: Session, channels: List[Channel], settings: SystemSettings
     ):
         """
-        Exécute les transmissions dues.
-
-        Gère les collisions (plusieurs TX au même moment).
+        Exécute TOUTES les transmissions PENDING dont planned_at <= now.
+        
+        Une par une, en marquant chaque TX avant de l'exécuter.
         """
         now = datetime.utcnow()
 
-        # Trouver les canaux avec TX due
-        due_channels = []
-        for channel in channels:
-            if channel.runtime and channel.runtime.next_tx_at:
-                if channel.runtime.next_tx_at <= now:
-                    due_channels.append(channel)
-
-        if not due_channels:
-            return
-
-        # Mélanger l'ordre (aléatoire)
-        random.shuffle(due_channels)
-
-        logger.info(
-            f"{len(due_channels)} transmissions dues, ordre: {[ch.name for ch in due_channels]}"
+        # Trouver TOUTES les TX PENDING dues (planned_at <= now)
+        due_tx = (
+            db.query(TxHistory)
+            .filter(
+                TxHistory.status == "PENDING",
+                TxHistory.planned_at <= now,
+            )
+            .order_by(TxHistory.planned_at)  # Ordre chronologique
+            .all()
         )
 
+        if not due_tx:
+            return
+
+        logger.info(f"{len(due_tx)} TX PENDING à exécuter")
+
         # Exécuter séquentiellement
-        for i, channel in enumerate(due_channels):
+        for i, tx_record in enumerate(due_tx):
             try:
-                await self._execute_single_transmission(db, channel, settings)
+                # Récupérer le canal
+                channel = db.query(Channel).filter_by(id=tx_record.channel_id).first()
+                if not channel:
+                    logger.error(f"Canal {tx_record.channel_id} introuvable")
+                    tx_record.status = "FAILED"
+                    tx_record.error_message = "Channel not found"
+                    db.commit()
+                    continue
+
+                await self._execute_single_transmission(db, channel, settings, tx_record)
 
                 # Pause inter-annonce (sauf pour la dernière)
-                if i < len(due_channels) - 1:
+                if i < len(due_tx) - 1:
                     pause = settings.inter_announcement_pause_seconds
                     logger.info(f"Pause inter-annonce: {pause}s")
                     await asyncio.sleep(pause)
 
             except Exception as e:
                 logger.error(
-                    f"Erreur lors de la TX du canal {channel.name}: {e}", exc_info=True
+                    f"Erreur lors de la TX {tx_record.tx_id[:12]}...: {e}", exc_info=True
                 )
-                channel.runtime.last_error = str(e)
+                tx_record.status = "FAILED"
+                tx_record.error_message = str(e)
+                if channel:
+                    channel.runtime.last_error = str(e)
                 db.commit()
 
+        # Recalculer next_tx_at pour tous les canaux affectés
+        affected_channels = set(tx.channel_id for tx in due_tx)
+        for channel_id in affected_channels:
+            channel = db.query(Channel).filter_by(id=channel_id).first()
+            if channel and channel.runtime:
+                next_pending = (
+                    db.query(TxHistory)
+                    .filter(
+                        TxHistory.channel_id == channel_id,
+                        TxHistory.status == "PENDING",
+                    )
+                    .order_by(TxHistory.planned_at)
+                    .first()
+                )
+                channel.runtime.next_tx_at = next_pending.planned_at if next_pending else None
+                logger.debug(f"next_tx_at mis à jour pour {channel.name}: {channel.runtime.next_tx_at}")
+
+        db.commit()
+
     async def _execute_single_transmission(
-        self, db: Session, channel: Channel, settings: SystemSettings
+        self, db: Session, channel: Channel, settings: SystemSettings, tx_record: TxHistory
     ):
         """
         Exécute UNE transmission pour un canal.
 
-        Suit la procédure fail-safe complète :
-        1. Récupérer la mesure + vérifier non périmée
-        2. Rendre le texte depuis le template
-        3. Obtenir/synthétiser l'audio (utiliser le cache)
-        4. Calculer tx_id
-        5. INSERT tx_history avec status="PENDING" puis COMMIT
-        6. Re-vérifier non périmée immédiatement avant TX
-        7. Acquérir le verrou TX global
-        8. PTT ON → délai lead → jouer audio → délai tail → PTT OFF
-        9. UPDATE status="SENT"|"FAILED" + COMMIT
+        La TX est DÉJÀ créée dans tx_history avec status="PENDING".
+        
+        Procédure :
+        1. Vérifier mesure non périmée
+        2. Obtenir/synthétiser l'audio (cache)
+        3. Re-vérifier non périmée JUSTE AVANT TX
+        4. Acquérir verrou TX + PTT ON → audio → PTT OFF
+        5. Marquer status="SENT" ou "FAILED"
         """
-        tx_record = None
-
         try:
-            # ANTI-SPAM : Vérifier min_interval_between_tx
-            if channel.runtime.last_tx_at:
-                elapsed = (
-                    datetime.utcnow() - channel.runtime.last_tx_at
-                ).total_seconds()
-                if elapsed < channel.min_interval_between_tx_seconds:
-                    logger.info(
-                        f"TX skipped pour {channel.name} : intervalle insuffisant "
-                        f"({elapsed:.0f}s < {channel.min_interval_between_tx_seconds}s)"
-                    )
-                    channel.runtime.next_tx_at = None
-                    db.commit()
-                    return
-
-            # ÉTAPE 1 : Récupérer la mesure
+            # ÉTAPE 1 : Récupérer la mesure et vérifier non périmée
             provider = provider_manager.get_provider(channel.provider_id)
             if not provider:
                 raise Exception(f"Provider {channel.provider_id} non disponible")
@@ -411,32 +470,22 @@ class VHFRunner:
                     f"Mesure périmée : {measurement.measurement_at}"
                 )
 
-            # ÉTAPE 2 : Rendre le template
-            rendered_text = self.template_renderer.render(
-                template=channel.template_text,
-                station_name=channel.name,  # Utilise le nom du canal
-                wind_avg_kmh=measurement.wind_avg_kmh,
-                wind_max_kmh=measurement.wind_max_kmh,
-                wind_min_kmh=measurement.wind_min_kmh,
-                wind_direction_deg=measurement.wind_direction,  # Corrigé: utilise wind_direction (degrés)
-                measurement_at=measurement.measurement_at,
-            )
-
-            # ÉTAPE 3 : Obtenir/synthétiser l'audio (cache-first)
+            # ÉTAPE 2 : Obtenir/synthétiser l'audio (cache-first)
             import json
 
             voice_params = json.loads(channel.voice_params_json or "{}")
 
-            # Mode mock TTS si Piper non disponible
-            if self.tts_engine is None:
-                logger.warning("TTS non disponible, création d'un fichier audio mock")
-                # Créer un fichier WAV factice
+            # Si audio_path déjà dans tx_record, l'utiliser
+            if tx_record.audio_path and Path(tx_record.audio_path).exists():
+                audio_path = tx_record.audio_path
+            else:
+                # Pour l'instant : toujours créer un mock WAV (TODO : intégrer cache TTS)
                 from app.database import DATA_DIR
 
                 audio_path = str(
                     DATA_DIR
                     / "audio_cache"
-                    / f"mock_{channel.id}_{hash(rendered_text) % 10000}.wav"
+                    / f"tx_{tx_record.tx_id[:12]}.wav"
                 )
                 Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
 
@@ -448,115 +497,56 @@ class VHFRunner:
                     wav.setsampwidth(2)
                     wav.setframerate(16000)
                     wav.writeframes(b"\x00" * 32000)  # 1 sec de silence
-            else:
-                audio_path = await self.tts_cache.get_or_synthesize(
-                    engine=self.tts_engine,
-                    engine_id=channel.engine_id,
-                    voice_id=channel.voice_id,
-                    voice_params=voice_params,
-                    text=rendered_text,
-                    locale="fr_FR",
-                )
+                
+                logger.info(f"Audio mock créé : {audio_path}")
 
-            if not audio_path or not Path(audio_path).exists():
-                raise Exception("Fichier audio manquant")
 
-            # ÉTAPE 4 : Calculer tx_id
-            from app.utils import compute_tx_id
+                if not audio_path or not Path(audio_path).exists():
+                    raise Exception("Fichier audio manquant")
 
-            tx_id = compute_tx_id(
-                channel_id=channel.id,
-                provider_id=channel.provider_id,
-                station_id=channel.station_id,
-                measurement_at=measurement.measurement_at,
-                rendered_text=rendered_text,
-                engine_id=channel.engine_id,
-                voice_id=channel.voice_id,
-                voice_params=voice_params,
-                offset_seconds=0,  # TODO: récupérer l'offset réel
-            )
+                # Sauvegarder audio_path dans tx_record
+                tx_record.audio_path = audio_path
+                db.commit()
 
-            # ÉTAPE 5 : Journaliser PENDING (CRITIQUE)
-            tx_record = TxHistory(
-                tx_id=tx_id,
-                channel_id=channel.id,
-                mode="SCHEDULED",
-                status="PENDING",
-                station_id=str(channel.station_id),
-                measurement_at=measurement.measurement_at,
-                offset_seconds=0,
-                planned_at=datetime.utcnow(),
-                rendered_text=rendered_text,
-                audio_path=audio_path,
-            )
-            db.add(tx_record)
-            db.commit()  # COMMIT CRITIQUE : si ça échoue, pas de TX
+            logger.info(f"TX {tx_record.tx_id[:12]}... pour {channel.name}, audio: {audio_path}")
 
-            logger.info(f"TX {tx_id[:8]}... journalisée PENDING pour {channel.name}")
-
-            # ÉTAPE 6 : Re-vérifier non périmée JUSTE AVANT TX
+            # ÉTAPE 3 : Re-vérifier non périmée JUSTE AVANT TX
             if is_measurement_expired(
                 measurement.measurement_at, channel.measurement_period_seconds
             ):
                 raise MeasurementExpiredError("Mesure périmée juste avant transmission")
 
-            # ÉTAPES 7-8 : Transmission PTT
+            # ÉTAPE 4 : Transmission PTT
             logger.info(f"Début transmission pour {channel.name}")
             await self.transmission_service.transmit(
                 audio_path=audio_path,
-                lead_ms=channel.lead_ms,
-                tail_ms=channel.tail_ms,
+                lead_ms=settings.ptt_lead_ms,
+                tail_ms=settings.ptt_tail_ms,
                 timeout_seconds=settings.tx_timeout_seconds,
             )
 
-            # ÉTAPE 9 : Marquer SENT
+            # ÉTAPE 5 : Marquer SENT
             tx_record.status = "SENT"
             tx_record.sent_at = datetime.utcnow()
             channel.runtime.last_tx_at = datetime.utcnow()
 
-            # Calculer le prochain offset pour la même mesure
-            offsets = json.loads(channel.offsets_seconds_json or "[0]")
-            next_offset_tx = None
-
-            for offset in offsets:
-                planned_at = measurement.measurement_at + timedelta(seconds=offset)
-                # Chercher le prochain offset après maintenant
-                if planned_at > datetime.utcnow():
-                    if next_offset_tx is None or planned_at < next_offset_tx:
-                        next_offset_tx = planned_at
-
-            if next_offset_tx:
-                channel.runtime.next_tx_at = next_offset_tx
-                logger.info(
-                    f"Prochain offset planifié pour {channel.name} à {next_offset_tx}"
-                )
-            else:
-                channel.runtime.next_tx_at = None  # Tous les offsets ont été émis
-                logger.info(f"Tous les offsets émis pour {channel.name}")
-
             db.commit()
 
-            logger.info(f"✅ TX {tx_id[:8]}... envoyée avec succès pour {channel.name}")
+            logger.info(f"✅ TX {tx_record.tx_id[:12]}... envoyée avec succès pour {channel.name}")
 
         except MeasurementExpiredError as e:
-            # Mesure périmée : fail silently (fail-closed)
+            # Mesure périmée : annuler la TX
             logger.warning(f"TX annulée pour {channel.name} : {e}")
-            if tx_record:
-                tx_record.status = "ABORTED"
-                tx_record.error_message = str(e)
-                db.commit()
-            channel.runtime.next_tx_at = None
+            tx_record.status = "ABORTED"
+            tx_record.error_message = str(e)
             db.commit()
 
         except Exception as e:
-            # Toute autre erreur : fail silently
+            # Toute autre erreur : marquer FAILED
             logger.error(f"❌ Erreur TX pour {channel.name}: {e}", exc_info=True)
-            if tx_record:
-                tx_record.status = "FAILED"
-                tx_record.error_message = str(e)
-                db.commit()
+            tx_record.status = "FAILED"
+            tx_record.error_message = str(e)
             channel.runtime.last_error = str(e)
-            channel.runtime.next_tx_at = None
             db.commit()
 
 
