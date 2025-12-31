@@ -29,7 +29,7 @@ async function loadProviders() {
                         <div class="form-group">
                             <label for="ffvl_api_key">Clé API FFVL</label>
                             <input type="password" id="ffvl_api_key" class="form-control" placeholder="Saisissez votre clé API">
-                            <small class="text-muted">Vous pouvez obtenir une clé API sur balisemeteo.com</small>
+                            <small class="text-muted">Pour obtenir une clé API, contactez la Fédération Française de Vol Libre (FFVL)</small>
                         </div>
                         <div id="ffvl-status" style="margin-bottom: 1rem;"></div>
                         <button type="submit" class="btn btn-primary">Enregistrer</button>
