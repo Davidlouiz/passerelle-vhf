@@ -31,7 +31,7 @@ function generateSidebar(currentPage) {
     return `
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>📻 VHF</h2>
+                <h2>📻 Passerelle VHF</h2>
             </div>
             <nav class="sidebar-nav">
                 ${navItems}
@@ -52,9 +52,18 @@ function generateSidebar(currentPage) {
 function initSidebar(currentPage) {
     // Trouver le conteneur de l'app
     const appContainer = document.querySelector('.app-container');
-    
+
     if (appContainer) {
         // Insérer la sidebar au début
         appContainer.insertAdjacentHTML('afterbegin', generateSidebar(currentPage));
+        
+        // Gérer le bouton de déconnexion
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('token');
+                window.location.href = '/static/index.html';
+            });
+        }
     }
 }

@@ -12,42 +12,7 @@
 <body>
     <div class="app-container">
         <!-- Sidebar -->
-        <aside class="sidebar">
-            <div class="sidebar-header">
-                <h2>📻 VHF</h2>
-            </div>
-            <nav class="sidebar-nav">
-                <a href="/static/dashboard.html" class="nav-item">
-                    <span class="icon">📊</span>
-                    Tableau de bord
-                </a>
-                <a href="/static/channels.html" class="nav-item">
-                    <span class="icon">📡</span>
-                    Canaux
-                </a>
-                <a href="/static/providers.html" class="nav-item active">
-                    <span class="icon">🌐</span>
-                    Sources
-                </a>
-                <a href="/static/history.html" class="nav-item">
-                    <span class="icon">📝</span>
-                    Historique TX
-                </a>
-                <a href="/static/settings.html" class="nav-item">
-                    <span class="icon">⚙️</span>
-                    Paramètres
-                </a>
-                <a href="/static/admin.html" class="nav-item">
-                    <span class="icon">👤</span>
-                    Administration
-                </a>
-            </nav>
-            <div class="sidebar-footer">
-                <button id="logoutBtn" class="btn btn-sm btn-secondary btn-block">
-                    Déconnexion
-                </button>
-            </div>
-        </aside>
+        <!-- Sidebar générée dynamiquement par sidebar.js -->
 
         <!-- Main content -->
         <main class="main-content">
@@ -90,6 +55,11 @@
     </div>
 
     <script src="/static/js/common.js"></script>
+    <script src="/static/js/sidebar.js"></script>
+    <script>
+        // Initialiser la sidebar
+        initSidebar('providers');
+    </script>
     <script src="/static/js/providers.js"></script>
 </body>
 
