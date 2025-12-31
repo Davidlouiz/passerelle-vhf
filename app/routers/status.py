@@ -92,7 +92,7 @@ def get_system_status(db: Session = Depends(get_db)):
         )
 
     # Dernières TX (10 plus récentes)
-    recent_tx = db.query(TxHistory).order_by(desc(TxHistory.created_at)).limit(10).all()
+    recent_tx = db.query(TxHistory).order_by(desc(TxHistory.sent_at)).limit(10).all()
 
     recent_tx_list = []
     for tx in recent_tx:

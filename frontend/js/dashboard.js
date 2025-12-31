@@ -140,7 +140,7 @@ function updateDashboard(data) {
                 <tbody>
                     ${data.recent_tx.map(tx => `
                         <tr>
-                            <td>${new Date(tx.created_at).toLocaleString('fr-FR', {
+                            <td>${new Date(tx.sent_at).toLocaleString('fr-FR', {
                                 day: '2-digit',
                                 month: '2-digit',
                                 hour: '2-digit',
