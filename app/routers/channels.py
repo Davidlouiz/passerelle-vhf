@@ -428,7 +428,7 @@ async def preview_channel(
             "measurement": {
                 "wind_avg_kmh": measurement.wind_avg_kmh,
                 "wind_max_kmh": measurement.wind_max_kmh,
-                "measurement_at": measurement.measurement_at.isoformat(),
+                "measurement_at": measurement.measurement_at.isoformat() + "Z" if not measurement.measurement_at.isoformat().endswith('Z') else measurement.measurement_at.isoformat(),
                 "age_minutes": measurement_age_minutes,
             },
             "was_cached": was_cached,
