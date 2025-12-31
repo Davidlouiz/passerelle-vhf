@@ -134,13 +134,22 @@ document.addEventListener('DOMContentLoaded', () => {
         historyTable.innerHTML = records.map(tx => {
             const statusClass = getStatusClass(tx.status);
             const modeLabel = tx.mode === 'SCHEDULED' ? 'Planifiée' : 'Test manuel';
-            const sentDate = tx.sent_at ?
-                new Date(tx.sent_at).toLocaleString('fr-FR') :
-                '-';
+            
+            // Pour les PENDING, afficher planned_at en grisé
+            let dateDisplay;
+            if (tx.status === 'PENDING') {
+                dateDisplay = tx.planned_at ? 
+                    `<span style="color: #999;">${new Date(tx.planned_at).toLocaleString('fr-FR')}</span>` : 
+                    '<span style="color: #999;">-</span>';
+            } else {
+                dateDisplay = tx.sent_at ? 
+                    new Date(tx.sent_at).toLocaleString('fr-FR') : 
+                    '-';
+            }
 
             return `
                 <tr>
-                    <td>${new Date(tx.created_at).toLocaleString('fr-FR')}</td>
+                    <td>${dateDisplay}</td>
                     <td><strong>${escapeHtml(tx.channel_name)}</strong></td>
                     <td>
                         <span class="badge badge-${tx.mode === 'SCHEDULED' ? 'primary' : 'info'}">
@@ -149,10 +158,9 @@ document.addEventListener('DOMContentLoaded', () => {
                     </td>
                     <td>
                         <span class="badge badge-${statusClass}">
-                            ${tx.status}
+                            ${getStatusLabel(tx.status)}
                         </span>
                     </td>
-                    <td>${sentDate}</td>
                     <td class="text-truncate" style="max-width: 300px;" title="${escapeHtml(tx.rendered_text)}">
                         ${escapeHtml(tx.rendered_text)}
                     </td>
@@ -284,6 +292,16 @@ document.addEventListener('DOMContentLoaded', () => {
             'PENDING': 'info',
         };
         return classes[status] || 'secondary';
+    }
+
+    function getStatusLabel(status) {
+        const labels = {
+            'SENT': 'Envoyé',
+            'FAILED': 'Échec',
+            'ABORTED': 'Annulé',
+            'PENDING': 'En attente',
+        };
+        return labels[status] || status;
     }
 
     function escapeHtml(text) {

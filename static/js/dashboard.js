@@ -154,7 +154,7 @@ function updateDashboard(data) {
                             </td>
                             <td>
                                 <span class="badge badge-${getStatusClass(tx.status)} badge-sm">
-                                    ${tx.status}
+                                    ${getStatusLabel(tx.status)}
                                 </span>
                                 ${tx.error_message ? `<span title="${escapeHtml(tx.error_message)}">⚠️</span>` : ''}
                             </td>
@@ -186,6 +186,16 @@ function getStatusClass(status) {
         'PENDING': 'info',
     };
     return classes[status] || 'secondary';
+}
+
+function getStatusLabel(status) {
+    const labels = {
+        'SENT': 'Envoyé',
+        'FAILED': 'Échec',
+        'ABORTED': 'Annulé',
+        'PENDING': 'En attente',
+    };
+    return labels[status] || status;
 }
 
 function escapeHtml(text) {

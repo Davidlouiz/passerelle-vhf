@@ -13,6 +13,7 @@ from sqlalchemy import desc, and_
 from app.database import get_db
 from app.models import TxHistory, Channel
 from app.dependencies import get_current_user
+from app.routers.status import format_utc_datetime
 
 router = APIRouter()
 
@@ -101,12 +102,10 @@ def get_tx_history(
                 "channel_name": channel.name if channel else "Canal supprimé",
                 "mode": tx.mode,
                 "status": tx.status,
-                "created_at": tx.created_at.isoformat() if tx.created_at else None,
-                "sent_at": tx.sent_at.isoformat() if tx.sent_at else None,
-                "planned_at": tx.planned_at.isoformat() if tx.planned_at else None,
-                "measurement_at": tx.measurement_at.isoformat()
-                if tx.measurement_at
-                else None,
+                "created_at": format_utc_datetime(tx.created_at),
+                "sent_at": format_utc_datetime(tx.sent_at),
+                "planned_at": format_utc_datetime(tx.planned_at),
+                "measurement_at": format_utc_datetime(tx.measurement_at),
                 "rendered_text": tx.rendered_text,
                 "error_message": tx.error_message,
                 "station_id": tx.station_id,
