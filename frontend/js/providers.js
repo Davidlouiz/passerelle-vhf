@@ -47,7 +47,7 @@ async function loadProviders() {
                                 Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur le canal VHF dédié, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
                                 Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
                                 Informations sur le projet :<br>
-                                - Projet : https://github.com/Davidlouiz/passerelle-vhf<br>
+                                - Projet : <a href="https://github.com/Davidlouiz/passerelle-vhf" target="_blank" style="color: #0066cc; text-decoration: underline;">https://github.com/Davidlouiz/passerelle-vhf</a><br>
                                 - Site/balise concerné : [à préciser]<br>
                                 - Localisation : [à préciser]<br>
                                 - Utilisation : diffusion VHF automatique locale<br><br>
