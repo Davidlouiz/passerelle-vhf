@@ -123,24 +123,28 @@ class VHFRunner:
             await asyncio.sleep(1)
 
     def _cleanup_old_pending(self):
-        """Marque les anciens PENDING en ABORTED au démarrage."""
+        """Marque les anciennes TX PENDING en ABORTED au démarrage.
+        
+        Annule uniquement les TX dont planned_at est dans le passé de plus de 1h.
+        Les TX récemment passées (< 1h) restent PENDING et seront exécutées.
+        """
         with get_db_session() as db:
-            cutoff = datetime.utcnow() - timedelta(seconds=120)
+            cutoff = datetime.utcnow() - timedelta(seconds=3600)  # 1 heure
 
             old_pending = (
                 db.query(TxHistory)
-                .filter(TxHistory.status == "PENDING", TxHistory.created_at < cutoff)
+                .filter(TxHistory.status == "PENDING", TxHistory.planned_at < cutoff)
                 .all()
             )
 
             for tx in old_pending:
                 tx.status = "ABORTED"
-                tx.error_message = "Aborted on runner restart (too old)"
+                tx.error_message = "Aborted on runner restart (planned_at > 1h ago)"
 
             if old_pending:
                 db.commit()
                 logger.info(
-                    f"Marqué {len(old_pending)} anciennes TX PENDING en ABORTED"
+                    f"Marqué {len(old_pending)} TX PENDING obsolètes en ABORTED"
                 )
 
     async def _iteration(self):
