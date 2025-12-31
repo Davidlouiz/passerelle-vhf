@@ -1,40 +1,51 @@
 # Personnalisation de la prononciation TTS
 
-## 🔊 Directions du vent
+💡 **Pour qui ?** Utilisateurs avancés et administrateurs système souhaitant optimiser la prononciation des directions du vent.
 
-Les directions du vent peuvent être personnalisées pour améliorer leur prononciation par les moteurs de synthèse vocale.
+⚠️ **Niveau** : Technique - Requiert des connaissances en édition de fichiers et redémarrage de services.
 
-### Fichier à modifier
+## 🎯 Pourquoi personnaliser ?
 
-**📁 Fichier** : `app/services/template.py`  
-**🔍 Fonction** : `degrees_to_name()`
+Les moteurs de synthèse vocale (TTS) peuvent parfois mal prononcer certains mots. Le système utilise déjà des optimisations pour le français :
+- **"Este"** au lieu de **"Est"** → Meilleure liaison phonétique dans "Nord-Este"
+- **"Oueste"** au lieu de **"Ouest"** → Prononciation plus claire
 
-### Prononciations par défaut
+Mais vous pouvez vouloir :
+- Adapter à une voix spécifique
+- Simplifier les directions (abréviations)
+- Ajouter des pauses
+- Revenir aux directions standard
 
-| Degrés | Direction | Prononciation optimisée |
-|--------|-----------|-------------------------|
-| 0° | Nord | Nord |
-| 22.5° | Nord-Nord-Est | Nord-Nord-Este |
-| 45° | Nord-Est | Nord-Este |
-| 67.5° | Est-Nord-Est | **Este-Nord-Este** ⭐ |
-| 90° | Est | Este |
-| 112.5° | Est-Sud-Est | Este-Sud-Este |
-| 135° | Sud-Est | Sud-Este |
-| 157.5° | Sud-Sud-Est | Sud-Sud-Este |
-| 180° | Sud | Sud |
-| 202.5° | Sud-Sud-Ouest | Sud-Sud-Oueste |
-| 225° | Sud-Ouest | Sud-Oueste |
-| 247.5° | Ouest-Sud-Ouest | Oueste-Sud-Oueste |
-| 270° | Ouest | Oueste |
-| 292.5° | Ouest-Nord-Ouest | Oueste-Nord-Oueste |
-| 315° | Nord-Ouest | Nord-Oueste |
-| 337.5° | Nord-Nord-Ouest | Nord-Nord-Oueste |
+## 🔊 Prononciations actuelles (optimisées)
 
-⭐ **Optimisations appliquées** :
-- `"Este"` au lieu de `"Est"` quand suivi d'un tiret → meilleure liaison phonétique
-- `"Oueste"` au lieu de `"Ouest"` → prononciation plus claire
+## 🔊 Prononciations actuelles (optimisées)
 
-### Comment personnaliser
+| Degrés | Direction standard | Prononciation système | Résultat vocal |
+|--------|-------------------|----------------------|----------------|
+| 0° | Nord | Nord | "Nord" |
+| 22.5° | Nord-Nord-Est | Nord-Nord-Este | "Nord-Nord-Este" |
+| 45° | Nord-Est | Nord-Este | "Nord-Este" |
+| 67.5° | Est-Nord-Est | **Este-Nord-Este** | "Este-Nord-Este" ⭐ |
+| 90° | Est | Este | "Este" |
+| 112.5° | Est-Sud-Est | Este-Sud-Este | "Este-Sud-Este" |
+| 135° | Sud-Est | Sud-Este | "Sud-Este" |
+| 157.5° | Sud-Sud-Est | Sud-Sud-Este | "Sud-Sud-Este" |
+| 180° | Sud | Sud | "Sud" |
+| 202.5° | Sud-Sud-Ouest | Sud-Sud-Oueste | "Sud-Sud-Oueste" |
+| 225° | Sud-Ouest | Sud-Oueste | "Sud-Oueste" |
+| 247.5° | Ouest-Sud-Ouest | Oueste-Sud-Oueste | "Oueste-Sud-Oueste" |
+| 270° | Ouest | Oueste | "Oueste" |
+| 292.5° | Ouest-Nord-Ouest | Oueste-Nord-Oueste | "Oueste-Nord-Oueste" |
+| 315° | Nord-Ouest | Nord-Oueste | "Nord-Oueste" |
+| 337.5° | Nord-Nord-Ouest | Nord-Nord-Oueste | "Nord-Nord-Oueste" |
+
+⭐ **Optimisations phonétiques** :
+- `"Este"` au lieu de `"Est"` quand suivi d'un tiret → meilleure liaison
+- `"Oueste"` au lieu de `"Ouest"` → prononciation plus claire pour le TTS français
+
+## 🛠️ Comment modifier (utilisateurs avancés)
+
+### Méthode 1 : Tester sans modification (recommandé d'abord)
 
 #### 1️⃣ Ouvrir le fichier
 

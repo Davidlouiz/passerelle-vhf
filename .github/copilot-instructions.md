@@ -66,7 +66,7 @@ Un SEUL PTT pour tous canaux. Si N annonces dues simultanément : shuffle ordre 
 - `provider_credentials` : clés API par provider (ex: ffvl_key)
 - `audio_cache` : cache TTS (engine_id, voice_id, text_hash) → chemin fichier WAV
 
-**Au démarrage runner** : marquer anciens PENDING (>120s) en ABORTED (évite TX obsolètes)
+**Au démarrage runner** : marquer anciens PENDING (planned_at > 1h) en ABORTED (évite TX obsolètes si runner redémarre)
 
 ### Providers météo ([app/providers/](app/providers/))
 Abstraction `WeatherProvider` + singleton `provider_manager`.
@@ -74,7 +74,8 @@ Abstraction `WeatherProvider` + singleton `provider_manager`.
 **FFVL** ([ffvl.py](app/providers/ffvl.py)) : Requiert `ffvl_key` dans credentials, ajouter `&key={ffvl_key}` à toutes URLs API  
 **OpenWindMap** ([openwindmap.py](app/providers/openwindmap.py)) : Aucune auth, fetch groupé `/v1/live/all` optimisé
 
-**Normalisation obligatoire** : Tous providers retournent `Measurement(measurement_at: datetime, wind_avg_kmh, wind_max_kmh, wind_min_kmh)` - dates UTC timezone-aware.
+**Normalisation obligatoire** : Tous providers retournent `Measurement(measurement_at: datetime, wind_avg_kmh, wind_max_kmh, wind_min_kmh)` - dates UTC timezone-aware.  
+**Pattern async** : Toutes requêtes HTTP via `async def fetch_measurement()` - utiliser `await` dans runner.
 
 ### TTS cache-first ([app/tts/](app/tts/))
 **Moteur** : Piper ([piper_engine.py](app/tts/piper_engine.py)) - 6 voix FR dans `data/tts_models/*.onnx`  
@@ -125,6 +126,12 @@ Fichiers dans `static/` (copie de `frontend/`) servis par FastAPI `StaticFiles`.
 **Compte par défaut** : `admin` / `admin` (CHANGER en production via UI ou POST `/api/auth/change-password`)  
 **Protection endpoints** : Dependency `current_user = Depends(get_current_user)` sur tous routers sauf `/api/auth/login`  
 **Frontend** : `authenticatedFetch()` ajoute header JWT + redirige vers login si 401
+
+## Gestion erreurs
+
+**Exceptions custom** ([app/exceptions.py](app/exceptions.py)) : `MeasurementExpiredError`, `ProviderError`, `TTSError`, `PTTError`, `ValidationError`, `AuthenticationError` - toutes héritent de `VHFBaseException`  
+**API HTTP** : Lever `HTTPException(status_code=404, detail="...")` dans routers FastAPI  
+**Runner** : Logger erreurs + marquer TX status="FAILED" avec error_message - JAMAIS propager exception qui stopperait le runner
 
 ## Tests critiques
 (via `compute_tx_id()` dans [app/utils.py](app/utils.py))  
