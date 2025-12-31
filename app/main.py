@@ -11,7 +11,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
 from app.database import init_db
-from app.routers import auth, status, providers, channels, tts, tx_history, settings
+from app.routers import auth, status, providers, channels, tts, tx_history, settings, users
 
 # Créer l'application
 app = FastAPI(
@@ -52,6 +52,7 @@ app.include_router(channels.router, prefix="/api/channels", tags=["Canaux"])
 app.include_router(tts.router, prefix="/api/tts", tags=["TTS"])
 app.include_router(tx_history.router, prefix="/api/tx", tags=["Historique TX"])
 app.include_router(settings.router, prefix="/api/settings", tags=["Paramètres"])
+app.include_router(users.router, prefix="/api/users", tags=["Utilisateurs"])
 
 # Servir les fichiers statiques du frontend
 frontend_path = Path(__file__).parent.parent / "frontend"

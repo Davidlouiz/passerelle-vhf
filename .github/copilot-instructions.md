@@ -14,13 +14,14 @@ Radio VHF multi-canaux qui annonce vocalement les mesures météo. **Fail-safe c
 source venv/bin/activate
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000  # Terminal 1
 python -m app.runner                                         # Terminal 2
-pytest tests/ -v            # Tests (fail-safe = critique)
+pytest tests/ -v            # Tests (fail-safe = critique, inclut tests async)
 cp -r frontend/* static/    # Copie frontend → static après modif HTML/CSS/JS
 ```
 
 **DB locale** : auto-créée dans `./data/vhf-balise.db` (VHF_DATA_DIR non défini)  
 **DB prod** : `export VHF_DATA_DIR=/opt/vhf-balise/data` (voir [app/database.py](app/database.py#L18-L22))  
-**Init manuelle DB** : `python -m app.init_db` (si `./dev.sh` ne suffit pas)
+**Init manuelle DB** : `python -m app.init_db` (si `./dev.sh` ne suffit pas)  
+**Venv** : Toujours activer avec `source venv/bin/activate` avant de lancer commandes Python
 
 ## ⚠️ Contrainte absolue : Fail-Safe
 
@@ -30,10 +31,10 @@ cp -r frontend/* static/    # Copie frontend → static après modif HTML/CSS/JS
 ```python
 # 1. Vérifier mesure non périmée (app.utils.is_measurement_expired)
 # 2. Rendre template + obtenir audio (cache-first)
-# 3. Calculer tx_id = hash(channel_id, station_id, measurement_at, text...)
+# 3. Calculer tx_id = hash(channel_id, station_id, measurement_at, text...) via compute_tx_id()
 # 4. INSERT tx_history status="PENDING" + COMMIT (si échoue → STOP, pas de TX)
 # 5. Re-vérifier péremption
-# 6. Acquérir verrou TX global (_tx_lock)
+# 6. Acquérir verrou TX global (_tx_lock threading.Lock)
 # 7. PTT ON → lead_ms → play audio → tail_ms → PTT OFF
 # 8. UPDATE status="SENT"|"FAILED" + COMMIT
 ```
@@ -52,16 +53,18 @@ Un SEUL PTT pour tous canaux. Si N annonces dues simultanément : shuffle ordre 
 ## Architecture clé
 
 ### Deux processus indépendants
-1. **Web** (`app/main.py`) : FastAPI sert `/api/*` + `static/*` (frontend HTML/CSS/JS)
-2. **Runner** (`app/runner.py`) : Boucle asyncio qui poll providers → planifie TX → exécute avec PTT
+1. **Web** (`app/main.py`) : FastAPI (uvicorn) sert `/api/*` + `static/*` (frontend HTML/CSS/JS)
+2. **Runner** (`app/runner.py`) : Boucle asyncio (`async def run()`) qui poll providers → planifie TX → exécute avec PTT. Un seul runner actif à la fois.
 
 ### Base de données ([app/models.py](app/models.py))
 **Tables critiques** :
+- `users` : authentification (username, password_hash, must_change_password) - compte par défaut `admin`/`admin`
 - `channels` : config canal (provider_id, station_id, template, voix, offsets)
 - `channel_runtime` : état (last_measurement_at, next_tx_at, last_error) - 1:1 avec channels
 - `tx_history` : journal TX avec `tx_id UNIQUE` (idempotence) + status PENDING→SENT/FAILED/ABORTED
 - `system_settings` : master_enabled, ptt_gpio_pin, audio_device (ligne unique id=1)
 - `provider_credentials` : clés API par provider (ex: ffvl_key)
+- `audio_cache` : cache TTS (engine_id, voice_id, text_hash) → chemin fichier WAV
 
 **Au démarrage runner** : marquer anciens PENDING (>120s) en ABORTED (évite TX obsolètes)
 
@@ -93,8 +96,10 @@ def endpoint(db: Session = Depends(get_db)):  # get_db auto-close session
 from app.database import get_db_session
 with get_db_session() as db:
     # faire ops
-    db.commit()  # Explicite !
+    db.commit()  # Explicite ! (pas de auto-commit)
 ```
+
+**IMPORTANT** : Dans le runner, TOUJOURS commit explicitement. Pas de auto-commit dans ce projet.
 
 ### Résolution station depuis URL visuelle
 Provider parse URL utilisateur → extrait `(provider_id, station_id)` :
@@ -122,7 +127,8 @@ Fichiers dans `static/` (copie de `frontend/`) servis par FastAPI `StaticFiles`.
 **Frontend** : `authenticatedFetch()` ajoute header JWT + redirige vers login si 401
 
 ## Tests critiques
-
+(via `compute_tx_id()` dans [app/utils.py](app/utils.py))  
+**Tests async** : Utiliser `@pytest.mark.asyncio` + `async def test_*()` pour tests async (transmission, providers) 
 **Fail-safe** : [tests/test_fail_safe_integration.py](tests/test_fail_safe_integration.py) - vérifie qu'aucune TX si mesure périmée OU commit échoue  
 **Idempotence** : [tests/test_idempotence.py](tests/test_idempotence.py) - tx_id unique empêche duplications  
 **Tous** : `pytest tests/ -v` (utilise MockPTTController, DB SQLite in-memory)  
