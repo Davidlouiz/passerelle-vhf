@@ -284,7 +284,7 @@ class VHFRunner:
         import json
 
         offsets = json.loads(channel.offsets_seconds_json or "[0]")
-        
+
         # Trouver la prochaine TX valide (pas dans le passé)
         next_valid_tx = None
 
@@ -309,7 +309,9 @@ class VHFRunner:
         else:
             # Toutes les TX sont dans le passé, réinitialiser
             channel.runtime.next_tx_at = None
-            logger.warning(f"Aucune TX valide pour {channel.name} (toutes dans le passé)")
+            logger.warning(
+                f"Aucune TX valide pour {channel.name} (toutes dans le passé)"
+            )
 
         db.commit()
 
@@ -511,7 +513,27 @@ class VHFRunner:
             tx_record.status = "SENT"
             tx_record.sent_at = datetime.utcnow()
             channel.runtime.last_tx_at = datetime.utcnow()
-            channel.runtime.next_tx_at = None  # Réinitialiser
+
+            # Calculer le prochain offset pour la même mesure
+            offsets = json.loads(channel.offsets_seconds_json or "[0]")
+            next_offset_tx = None
+
+            for offset in offsets:
+                planned_at = measurement.measurement_at + timedelta(seconds=offset)
+                # Chercher le prochain offset après maintenant
+                if planned_at > datetime.utcnow():
+                    if next_offset_tx is None or planned_at < next_offset_tx:
+                        next_offset_tx = planned_at
+
+            if next_offset_tx:
+                channel.runtime.next_tx_at = next_offset_tx
+                logger.info(
+                    f"Prochain offset planifié pour {channel.name} à {next_offset_tx}"
+                )
+            else:
+                channel.runtime.next_tx_at = None  # Tous les offsets ont été émis
+                logger.info(f"Tous les offsets émis pour {channel.name}")
+
             db.commit()
 
             logger.info(f"✅ TX {tx_id[:8]}... envoyée avec succès pour {channel.name}")

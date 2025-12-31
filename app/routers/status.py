@@ -15,23 +15,23 @@ router = APIRouter()
 def format_utc_datetime(dt) -> str:
     """
     Convertit un datetime naïf (assumé UTC) en ISO string avec timezone.
-    
+
     Args:
         dt: datetime naïf en UTC ou None
-        
+
     Returns:
         String ISO 8601 avec 'Z' ou None
     """
     if dt is None:
         return None
     # Ajouter 'Z' pour indiquer UTC
-    return dt.isoformat() + 'Z'
+    return dt.isoformat() + "Z"
 
 
 def check_runner_status() -> str:
     """
     Vérifie si le processus runner est en cours d'exécution.
-    
+
     Returns:
         "running" si le runner est actif, "stopped" sinon
     """
@@ -40,7 +40,7 @@ def check_runner_status() -> str:
             ["pgrep", "-f", "python.*app.runner"],
             capture_output=True,
             text=True,
-            timeout=2
+            timeout=2,
         )
         return "running" if result.returncode == 0 else "stopped"
     except Exception:
