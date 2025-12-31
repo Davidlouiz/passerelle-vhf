@@ -483,9 +483,9 @@ class VHFRunner:
             if tx_record.audio_path and Path(tx_record.audio_path).exists():
                 audio_path = tx_record.audio_path
             else:
-                # Pour l'instant : toujours créer un mock WAV (TODO : intégrer cache TTS)
+                # Synthétiser avec Piper
                 from app.database import DATA_DIR
-
+                
                 audio_path = str(
                     DATA_DIR
                     / "audio_cache"
@@ -493,17 +493,29 @@ class VHFRunner:
                 )
                 Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
 
-                # WAV minimal (silence de 1 seconde)
-                import wave
-
-                with wave.open(audio_path, "wb") as wav:
-                    wav.setnchannels(1)
-                    wav.setsampwidth(2)
-                    wav.setframerate(16000)
-                    wav.writeframes(b"\x00" * 32000)  # 1 sec de silence
-                
-                logger.info(f"Audio mock créé : {audio_path}")
-
+                if self.tts_engine:
+                    # Utiliser Piper pour synthétiser
+                    logger.info(f"Synthèse TTS : '{tx_record.rendered_text[:50]}...'")
+                    
+                    # Piper synthesize est synchrone, on l'exécute dans un thread
+                    audio_path = await asyncio.to_thread(
+                        self.tts_engine.synthesize,
+                        tx_record.rendered_text,  # text
+                        channel.voice_id,          # voice_id
+                        audio_path,                # output_path
+                        voice_params               # params
+                    )
+                    
+                    logger.info(f"Audio synthétisé : {audio_path}")
+                else:
+                    # Fallback : WAV mock si TTS indisponible
+                    logger.warning("TTS indisponible, création audio mock")
+                    import wave
+                    with wave.open(audio_path, "wb") as wav:
+                        wav.setnchannels(1)
+                        wav.setsampwidth(2)
+                        wav.setframerate(16000)
+                        wav.writeframes(b"\x00" * 32000)
 
                 if not audio_path or not Path(audio_path).exists():
                     raise Exception("Fichier audio manquant")
