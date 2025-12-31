@@ -50,10 +50,10 @@ function displayChannels(channels) {
                         </td>
                         <td>
                             <button onclick="testMeasurement(${ch.id}, '${ch.provider_id}', '${ch.station_id}')" class="btn btn-sm btn-outline-secondary" title="Tester récupération mesure">
-                                💨
+                                API
                             </button>
                             <button onclick="previewAnnouncement(${ch.id})" class="btn btn-sm btn-outline-secondary" title="Écouter avec vraies valeurs">
-                                🔊
+                                TTS
                             </button>
                         </td>
                         <td>
