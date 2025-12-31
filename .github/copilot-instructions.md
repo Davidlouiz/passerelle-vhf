@@ -116,8 +116,9 @@ tx_id = hash(channel_id, provider_id, station_id, measurement_at,
 - `auth.py` - /api/auth/login, /logout, /change-password
 - `providers.py` - /api/providers/*, résolution de stations
 - `channels.py` - CRUD canaux + preview/test
-- `tts.py` - Liste voix, prévisualisation audio
+- `tts.py` - Liste voix, prévisualisation audio (endpoints API uniquement)
 - `status.py` - État système, logs récents
+- `tx_history.py` - /api/tx/history avec filtres (canal, statut, mode, dates)
 
 **app/services/** - Logique métier :
 - `template.py` - Rendu templates avec variables `{station_name}`, `{wind_avg_kmh}`, etc.
@@ -414,8 +415,8 @@ with get_db_session() as db:
 - `/api/auth/*` - Authentification
 - `/api/providers/*` - Config providers + résolution de stations
 - `/api/channels/*` - CRUD + activation/désactivation + tests
-- `/api/tts/*` - Info moteurs + liste voix + prévisualisation
-- `/api/tx/history` - Journal des transmissions
+- `/api/tts/*` - Info moteurs + liste voix + prévisualisation (API uniquement, pas de page frontend)
+- `/api/tx/history` - Journal des transmissions avec filtres
 - `/api/status` - Statut système/canaux
 - `/api/logs` - Logs filtrés
 
@@ -425,8 +426,7 @@ Fichiers HTML dans `static/` (servi via FastAPI StaticFiles) :
 - **Tableau de bord** ([dashboard.html](static/dashboard.html)) - Vue globale (master_enabled, état Runner, verrou TX, logs récents)
 - **Configuration providers** ([providers.html](static/providers.html)) - Saisie clé FFVL, infos OpenWindMap
 - **Gestion des canaux** ([channels.html](static/channels.html)) - Liste, CRUD, activation/désactivation par canal
-- **Voix TTS** ([tts.html](static/tts.html)) - Test des voix disponibles
-- **Historique des émissions** ([history.html](static/history.html)) - Filtres par canal, statut, période
+- **Historique des émissions** ([history.html](static/history.html)) - Filtres par canal, statut, période (inclut les TX EN ATTENTE)
 - **Administration** ([admin.html](static/admin.html)) - Gestion comptes, logs système
 - **Paramètres système** ([settings.html](static/settings.html)) - master_enabled, intervalles, config PTT/audio
 

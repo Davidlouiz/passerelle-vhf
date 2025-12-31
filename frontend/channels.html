@@ -29,17 +29,9 @@
                     <span class="icon">🌐</span>
                     Sources
                 </a>
-                <a href="/static/tts.html" class="nav-item">
-                    <span class="icon">🔊</span>
-                    Test TTS
-                </a>
                 <a href="/static/history.html" class="nav-item">
                     <span class="icon">📝</span>
                     Historique TX
-                </a>
-                <a href="/static/timeline.html" class="nav-item">
-                    <span class="icon">🕒</span>
-                    Timeline
                 </a>
                 <a href="/static/settings.html" class="nav-item">
                     <span class="icon">⚙️</span>
@@ -91,7 +83,7 @@
                             <!-- Section 1 : Source -->
                             <div class="form-section">
                                 <h3 class="section-title">📡 Source des données</h3>
-                                
+
                                 <div class="form-group">
                                     <label for="channel_name">Nom de la balise *</label>
                                     <input type="text" id="channel_name" required placeholder="Ex: Col de la Forclaz">
@@ -101,24 +93,29 @@
                                     <label for="station_url">URL de la station météo *</label>
                                     <input type="text" id="station_url" required
                                         placeholder="https://www.balisemeteo.com/balise.php?idBalise=67">
-                                    <small class="text-muted">FFVL (balisemeteo.com) ou OpenWindMap (openwindmap.org)</small>
+                                    <small class="text-muted">FFVL (balisemeteo.com) ou OpenWindMap
+                                        (openwindmap.org)</small>
                                 </div>
                             </div>
 
                             <!-- Section 2 : Annonce vocale -->
                             <div class="form-section">
                                 <h3 class="section-title">🎙️ Annonce vocale</h3>
-                                
+
                                 <div class="form-group">
                                     <label for="template">Texte de l'annonce *</label>
-                                    <textarea id="template" required rows="4" class="form-control">Balise de {station_name}, {wind_direction_name}, {wind_avg_kmh} kilomètres par heure, {wind_max_kmh} maximum, il y a {measurement_age_minutes} minutes.</textarea>
+                                    <textarea id="template" required rows="4"
+                                        class="form-control">Balise de {station_name}, {wind_direction_name}, {wind_avg_kmh} kilomètres par heure, {wind_max_kmh} maximum, il y a {measurement_age_minutes} minutes.</textarea>
                                     <small class="text-muted">
                                         💡 <strong>Variables disponibles :</strong><br>
                                         • <code>{station_name}</code> : Nom de la balise météo<br>
                                         • <code>{wind_avg_kmh}</code> : Vent moyen en km/h<br>
                                         • <code>{wind_max_kmh}</code> : Rafales (vent maximum) en km/h<br>
-                                        • <code>{wind_min_kmh}</code> : Vent minimum en km/h (optionnel selon balise)<br>
-                                        • <code>{wind_direction_name}</code> : Direction complète (Nord, Nord-Nord-Est, Nord-Est, Est-Nord-Est, Est, Sud-Est, Sud, Sud-Sud-Ouest, Sud-Ouest, Ouest, Nord-Ouest...)<br>
+                                        • <code>{wind_min_kmh}</code> : Vent minimum en km/h (optionnel selon
+                                        balise)<br>
+                                        • <code>{wind_direction_name}</code> : Direction complète (Nord, Nord-Nord-Est,
+                                        Nord-Est, Est-Nord-Est, Est, Sud-Est, Sud, Sud-Sud-Ouest, Sud-Ouest, Ouest,
+                                        Nord-Ouest...)<br>
                                         • <code>{wind_direction_deg}</code> : Direction en degrés 0-359<br>
                                         • <code>{measurement_age_minutes}</code> : Ancienneté de la mesure en minutes
                                     </small>
@@ -132,17 +129,19 @@
                                 </div>
 
                                 <div class="form-group">
-                                    <button type="button" class="btn btn-sm btn-outline-secondary" onclick="testVoiceWithTemplate()">
+                                    <button type="button" class="btn btn-sm btn-outline-secondary"
+                                        onclick="testVoiceWithTemplate()">
                                         🎧 Écouter le rendu
                                     </button>
-                                    <small class="text-muted" style="margin-left: 10px;">Teste la voix avec le texte ci-dessus (valeurs fictives)</small>
+                                    <small class="text-muted" style="margin-left: 10px;">Teste la voix avec le texte
+                                        ci-dessus (valeurs fictives)</small>
                                 </div>
                             </div>
 
                             <!-- Section 3 : Planning des annonces -->
                             <div class="form-section">
                                 <h3 class="section-title">⏰ Planning des annonces</h3>
-                                
+
                                 <div class="form-group">
                                     <label for="offsets">Quand annoncer après réception de la mesure ?</label>
                                     <input type="text" id="offsets" value="0" placeholder="0, 1200, 2400">
@@ -150,7 +149,8 @@
                                         <strong>En secondes, séparés par des virgules.</strong><br>
                                         Exemples :<br>
                                         • <code>0</code> = Annonce immédiate<br>
-                                        • <code>0, 1200, 2400</code> = Annonces à 0min, 20min et 40min après la mesure<br>
+                                        • <code>0, 1200, 2400</code> = Annonces à 0min, 20min et 40min après la
+                                        mesure<br>
                                         • <code>600, 1800</code> = Annonces à 10min et 30min
                                     </small>
                                 </div>
