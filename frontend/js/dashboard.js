@@ -34,17 +34,15 @@ function updateDashboard(data) {
     
     if (runnerStatus === 'running') {
         runnerStatusEl.innerHTML = `
-            <span class="text-success">✓ En cours</span>
-            <button onclick="stopRunner()" class="btn btn-sm btn-danger">
-                Arrêter
-            </button>
+            <span onclick="stopRunner()" class="text-success" style="cursor: pointer; text-decoration: underline;">
+                ✓ En cours
+            </span>
         `;
     } else if (runnerStatus === 'stopped') {
         runnerStatusEl.innerHTML = `
-            <span class="text-danger">✗ Arrêté</span>
-            <button onclick="startRunner()" class="btn btn-sm btn-success">
-                Démarrer
-            </button>
+            <span onclick="startRunner()" class="text-danger" style="cursor: pointer; text-decoration: underline;">
+                ✗ Arrêté
+            </span>
         `;
     } else {
         runnerStatusEl.textContent = 'État inconnu';
