@@ -34,13 +34,13 @@ function updateDashboard(data) {
     
     if (runnerStatus === 'running') {
         runnerStatusEl.innerHTML = `
-            <span onclick="stopRunner()" class="text-success" style="cursor: pointer; text-decoration: underline;">
+            <span onclick="stopRunner()" class="text-success" style="cursor: pointer;">
                 ✓ En cours
             </span>
         `;
     } else if (runnerStatus === 'stopped') {
         runnerStatusEl.innerHTML = `
-            <span onclick="startRunner()" class="text-danger" style="cursor: pointer; text-decoration: underline;">
+            <span onclick="startRunner()" class="text-danger" style="cursor: pointer;">
                 ✗ Arrêté
             </span>
         `;
