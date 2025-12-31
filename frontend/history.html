@@ -36,6 +36,10 @@
                     <span class="icon">📝</span>
                     Historique TX
                 </a>
+                <a href="/static/timeline.html" class="nav-item">
+                    <span class="icon">🕒</span>
+                    Timeline
+                </a>
                 <a href="/static/settings.html" class="nav-item">
                     <span class="icon">⚙️</span>
                     Paramètres
@@ -55,12 +59,106 @@
         <main class="main-content">
             <header class="page-header">
                 <h1>Historique des transmissions</h1>
+                <p class="text-muted">Journal détaillé de toutes les émissions radio</p>
             </header>
 
             <div class="content">
-                <div class="card">
+                <!-- Statistiques 24h -->
+                <div id="statsContainer" class="mb-4">
+                    <!-- Chargé dynamiquement -->
+                </div>
+
+                <!-- Filtres -->
+                <div class="card mb-4">
+                    <div class="card-header">
+                        <h3>Filtres</h3>
+                    </div>
                     <div class="card-body">
-                        <p class="text-muted">Aucune transmission enregistrée.</p>
+                        <div class="filters-grid">
+                            <div class="form-group">
+                                <label for="channelFilter">Canal</label>
+                                <select id="channelFilter" class="form-control">
+                                    <option value="">Tous les canaux</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="statusFilter">Statut</label>
+                                <select id="statusFilter" class="form-control">
+                                    <option value="">Tous les statuts</option>
+                                    <option value="SENT">Envoyées</option>
+                                    <option value="FAILED">Échecs</option>
+                                    <option value="ABORTED">Annulées</option>
+                                    <option value="PENDING">En attente</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="modeFilter">Mode</label>
+                                <select id="modeFilter" class="form-control">
+                                    <option value="">Tous les modes</option>
+                                    <option value="SCHEDULED">Planifiées</option>
+                                    <option value="MANUAL_TEST">Tests manuels</option>
+                                </select>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="startDate">Date de début</label>
+                                <input type="datetime-local" id="startDate" class="form-control">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="endDate">Date de fin</label>
+                                <input type="datetime-local" id="endDate" class="form-control">
+                            </div>
+
+                            <div class="form-group" style="display: flex; align-items: flex-end; gap: 10px;">
+                                <button id="applyFilters" class="btn btn-primary">
+                                    Appliquer
+                                </button>
+                                <button id="clearFilters" class="btn btn-secondary">
+                                    Réinitialiser
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Tableau des transmissions -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Transmissions enregistrées</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table">
+                                <thead>
+                                    <tr>
+                                        <th>Date création</th>
+                                        <th>Canal</th>
+                                        <th>Mode</th>
+                                        <th>Statut</th>
+                                        <th>Date émission</th>
+                                        <th>Texte annoncé</th>
+                                        <th>Station</th>
+                                        <th>Erreur</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="historyTable">
+                                    <tr>
+                                        <td colspan="8" class="text-center">
+                                            <div class="spinner"></div>
+                                            Chargement...
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+
+                        <!-- Pagination -->
+                        <div id="paginationControls" class="pagination-container mt-3">
+                            <!-- Chargé dynamiquement -->
+                        </div>
                     </div>
                 </div>
             </div>
@@ -68,6 +166,7 @@
     </div>
 
     <script src="/static/js/common.js"></script>
+    <script src="/static/js/history.js"></script>
 </body>
 
 </html>

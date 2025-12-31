@@ -61,7 +61,7 @@ class Channel(Base):
 
     # Provider et station
     provider_id = Column(String(50), nullable=False, index=True)
-    station_id = Column(Integer, nullable=False)
+    station_id = Column(String(50), nullable=False)
     station_visual_url_cache = Column(String(500), nullable=True)
 
     # Radio (optionnel, non utilisé pour l'instant)

@@ -206,7 +206,7 @@ class VHFRunner:
                 logger.warning(f"Provider inconnu: {provider_id}")
                 continue
 
-            station_ids = [ch.station_id for ch in provider_channels]
+            station_ids = [str(ch.station_id) for ch in provider_channels]
             logger.info(f"Fetching {provider_id} pour stations : {station_ids}")
 
             try:
@@ -216,7 +216,7 @@ class VHFRunner:
 
                 # Mettre à jour les runtimes
                 for channel in provider_channels:
-                    measurement = measurements.get(channel.station_id)
+                    measurement = measurements.get(str(channel.station_id))
                     if measurement:
                         self._update_channel_measurement(db, channel, measurement)
                     else:
@@ -284,6 +284,9 @@ class VHFRunner:
         import json
 
         offsets = json.loads(channel.offsets_seconds_json or "[0]")
+        
+        # Trouver la prochaine TX valide (pas dans le passé)
+        next_valid_tx = None
 
         for offset in offsets:
             planned_at = measurement.measurement_at + timedelta(seconds=offset)
@@ -295,15 +298,20 @@ class VHFRunner:
                 )
                 continue
 
-            # Mettre à jour next_tx_at avec la plus proche
-            if (
-                not channel.runtime.next_tx_at
-                or planned_at < channel.runtime.next_tx_at
-            ):
-                channel.runtime.next_tx_at = planned_at
+            # Garder la plus proche TX valide
+            if next_valid_tx is None or planned_at < next_valid_tx:
+                next_valid_tx = planned_at
+
+        # Mettre à jour next_tx_at seulement si on a une TX valide
+        if next_valid_tx:
+            channel.runtime.next_tx_at = next_valid_tx
+            logger.info(f"TX planifiée pour {channel.name} à {next_valid_tx}")
+        else:
+            # Toutes les TX sont dans le passé, réinitialiser
+            channel.runtime.next_tx_at = None
+            logger.warning(f"Aucune TX valide pour {channel.name} (toutes dans le passé)")
 
         db.commit()
-        logger.info(f"TX planifiée pour {channel.name} à {channel.runtime.next_tx_at}")
 
     async def _execute_transmissions(
         self, db: Session, channels: List[Channel], settings: SystemSettings

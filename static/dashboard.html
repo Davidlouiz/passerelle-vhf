@@ -37,6 +37,10 @@
                     <span class="icon">📝</span>
                     Historique TX
                 </a>
+                <a href="/static/timeline.html" class="nav-item">
+                    <span class="icon">🕒</span>
+                    Timeline
+                </a>
                 <a href="/static/settings.html" class="nav-item">
                     <span class="icon">⚙️</span>
                     Paramètres
@@ -90,10 +94,37 @@
                     </div>
                 </div>
 
-                <!-- Canaux -->
+                <!-- Stats TX 24h -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Canaux</h3>
+                        <h3>Transmissions (24h)</h3>
+                    </div>
+                    <div class="card-body">
+                        <div class="stats-grid">
+                            <div class="stat-card">
+                                <div class="stat-value" id="tx-total">—</div>
+                                <div class="stat-label">Total</div>
+                            </div>
+                            <div class="stat-card stat-success">
+                                <div class="stat-value" id="tx-sent">—</div>
+                                <div class="stat-label">Envoyées</div>
+                            </div>
+                            <div class="stat-card stat-danger">
+                                <div class="stat-value" id="tx-failed">—</div>
+                                <div class="stat-label">Échecs</div>
+                            </div>
+                            <div class="stat-card stat-warning">
+                                <div class="stat-value" id="tx-aborted">—</div>
+                                <div class="stat-label">Annulées</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canaux avec stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activité par canal</h3>
                         <a href="/static/channels.html" class="btn btn-sm btn-primary">Gérer</a>
                     </div>
                     <div class="card-body">
@@ -103,14 +134,15 @@
                     </div>
                 </div>
 
-                <!-- Logs récents -->
+                <!-- Dernières transmissions -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Logs récents</h3>
+                        <h3>Dernières transmissions</h3>
+                        <a href="/static/history.html" class="btn btn-sm btn-primary">Voir tout</a>
                     </div>
                     <div class="card-body">
-                        <div id="recent-logs">
-                            <p class="text-muted">Aucun log récent</p>
+                        <div id="recent-tx">
+                            <p class="text-muted">Aucune transmission récente</p>
                         </div>
                     </div>
                 </div>
