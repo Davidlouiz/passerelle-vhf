@@ -302,7 +302,7 @@ class VHFRunner:
                 wind_avg_kmh=measurement.wind_avg_kmh,
                 wind_max_kmh=measurement.wind_max_kmh,
                 wind_min_kmh=measurement.wind_min_kmh or 0,
-                wind_direction_deg=getattr(measurement, 'wind_direction_deg', None),
+                wind_direction_deg=measurement.wind_direction,
                 measurement_at=measurement.measurement_at
             )
 
