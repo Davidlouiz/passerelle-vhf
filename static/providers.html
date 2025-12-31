@@ -28,15 +28,11 @@
                     </div>
                     <div class="card-body">
                         <p class="text-muted">Configuration de la clé API pour accéder aux balises FFVL.</p>
-                        <form id="ffvlForm">
-                            <div class="form-group">
-                                <label for="ffvl_api_key">Clé API FFVL</label>
-                                <input type="password" id="ffvl_api_key" placeholder="Saisissez votre clé API">
-                                <small class="text-muted">Vous pouvez obtenir une clé API sur balisemeteo.com</small>
-                            </div>
-                            <div id="ffvl-status" style="margin-bottom: 1rem;"></div>
-                            <button type="submit" class="btn btn-primary">Enregistrer</button>
-                        </form>
+                        
+                        <!-- Zone de statut et actions -->
+                        <div id="ffvl-container">
+                            <!-- Contenu chargé dynamiquement par providers.js -->
+                        </div>
                     </div>
                 </div>
 

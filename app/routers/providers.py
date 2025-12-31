@@ -140,6 +140,44 @@ def update_credentials(
     return {"message": "Credentials mis à jour avec succès"}
 
 
+@router.delete("/credentials/{provider_id}")
+def delete_credentials(
+    provider_id: str,
+    db: Session = Depends(get_db),
+    current_user=Depends(get_current_user),
+):
+    """Supprime les credentials d'un provider."""
+
+    if provider_id not in ["ffvl", "openwindmap"]:
+        raise HTTPException(status_code=400, detail="Provider inconnu")
+
+    # Récupérer le credential
+    credential = (
+        db.query(ProviderCredential)
+        .filter(ProviderCredential.provider_id == provider_id)
+        .first()
+    )
+
+    if not credential:
+        raise HTTPException(status_code=404, detail="Aucune clé configurée pour ce provider")
+
+    # Supprimer
+    db.delete(credential)
+
+    # Audit log
+    audit = AuditLog(
+        user_id=current_user.id,
+        action=f"DELETE_PROVIDER_CREDENTIALS",
+        details_json=f"Provider: {provider_id}",
+        ip_address="127.0.0.1",  # TODO: récupérer vraie IP
+    )
+    db.add(audit)
+
+    db.commit()
+
+    return {"message": "Credentials supprimés avec succès"}
+
+
 @router.post("/resolve-station", response_model=StationResolutionResponse)
 def resolve_station(
     data: StationResolutionRequest,

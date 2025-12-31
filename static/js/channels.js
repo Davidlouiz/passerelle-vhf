@@ -462,7 +462,7 @@ function initVariableMenu() {
 async function loadVoices() {
     try {
         const response = await authenticatedFetch('/api/tts/voices');
-        
+
         if (response && response.ok) {
             const voices = await response.json();
             const select = document.getElementById('voice_id');
