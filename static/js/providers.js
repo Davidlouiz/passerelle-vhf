@@ -1,14 +1,9 @@
 // Gestion de la page providers
-const token = localStorage.getItem('token');
 
 // Charger le statut des providers
 async function loadProviders() {
     try {
-        const response = await fetch('/api/providers/', {
-            headers: {
-                'Authorization': `Bearer ${token}`
-            }
-        });
+        const response = await authenticatedFetch('/api/providers/');
 
         if (response.ok) {
             const providers = await response.json();
@@ -41,11 +36,10 @@ document.getElementById('ffvlForm').addEventListener('submit', async (e) => {
     }
 
     try {
-        const response = await fetch('/api/providers/credentials', {
+        const response = await authenticatedFetch('/api/providers/credentials', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify({
                 provider_id: 'ffvl',

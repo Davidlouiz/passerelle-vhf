@@ -1,43 +1,7 @@
-// Vérifier l'authentification
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/';
-        return null;
-    }
-    return token;
-}
-
-// Utilitaire pour faire des requêtes API
-async function apiRequest(url, options = {}) {
-    const token = checkAuth();
-    if (!token) return;
-
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
-
-    if (response.status === 401) {
-        // Token expiré
-        localStorage.removeItem('token');
-        window.location.href = '/';
-        return;
-    }
-
-    return response;
-}
-
 // Charger le statut système
 async function loadSystemStatus() {
     try {
-        const response = await apiRequest('/api/status');
+        const response = await authenticatedFetch('/api/status');
         if (!response) return;
 
         if (response.ok) {
@@ -54,16 +18,16 @@ function updateDashboard(data) {
     // Statut système
     document.getElementById('master-enabled').textContent =
         data.master_enabled ? '✓ Activé' : '✗ Désactivé';
-
-    document.getElementById('master-enabled').className =
+    
+    document.getElementById('master-enabled').className = 
         data.master_enabled ? 'stat-value text-success' : 'stat-value text-danger';
 
     document.getElementById('active-channels').textContent =
         `${data.active_channels} / ${data.total_channels}`;
-
+    
     document.getElementById('tx-lock-status').textContent =
         data.tx_lock_active ? '🔒 Occupé' : '✓ Libre';
-
+    
     document.getElementById('runner-status').textContent =
         data.runner_status === 'unknown' ? 'État inconnu' : data.runner_status;
 
@@ -141,11 +105,11 @@ function updateDashboard(data) {
                     ${data.recent_tx.map(tx => `
                         <tr>
                             <td>${new Date(tx.sent_at).toLocaleString('fr-FR', {
-            day: '2-digit',
-            month: '2-digit',
-            hour: '2-digit',
-            minute: '2-digit'
-        })}</td>
+                                day: '2-digit',
+                                month: '2-digit',
+                                hour: '2-digit',
+                                minute: '2-digit'
+                            })}</td>
                             <td>${escapeHtml(tx.channel_name)}</td>
                             <td>
                                 <span class="badge badge-${tx.mode === 'SCHEDULED' ? 'primary' : 'info'} badge-sm">

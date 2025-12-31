@@ -1,4 +1,18 @@
 // Gestion du login
+
+// Vérifier si la session a expiré
+document.addEventListener('DOMContentLoaded', () => {
+    if (localStorage.getItem('session_expired') === 'true') {
+        const errorDiv = document.getElementById('error-message');
+        errorDiv.textContent = '⏱️ Votre session a expiré. Veuillez vous reconnecter.';
+        errorDiv.style.display = 'block';
+        errorDiv.style.backgroundColor = '#fff3cd';
+        errorDiv.style.color = '#856404';
+        errorDiv.style.border = '1px solid #ffeeba';
+        localStorage.removeItem('session_expired');
+    }
+});
+
 document.getElementById('loginForm').addEventListener('submit', async (e) => {
     e.preventDefault();
 

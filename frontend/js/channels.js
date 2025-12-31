@@ -1,13 +1,10 @@
 // Gestion des canaux
-const token = localStorage.getItem('token');
 let currentChannelId = null;
 
 // Charger la liste des canaux
 async function loadChannels() {
     try {
-        const response = await fetch('/api/channels/', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await authenticatedFetch('/api/channels/');
 
         if (response.ok) {
             const channels = await response.json();
@@ -123,11 +120,10 @@ document.getElementById('channelForm').addEventListener('submit', async (e) => {
         const url = currentChannelId ? `/api/channels/${currentChannelId}` : '/api/channels/';
         const method = currentChannelId ? 'PUT' : 'POST';
 
-        const response = await fetch(url, {
+        const response = await authenticatedFetch(url, {
             method,
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
+                'Content-Type': 'application/json'
             },
             body: JSON.stringify(data)
         });
@@ -156,9 +152,8 @@ document.getElementById('channelForm').addEventListener('submit', async (e) => {
 // Activer/désactiver un canal
 async function toggleChannel(channelId) {
     try {
-        const response = await fetch(`/api/channels/${channelId}/toggle`, {
-            method: 'POST',
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await authenticatedFetch(`/api/channels/${channelId}/toggle`, {
+            method: 'POST'
         });
 
         if (response.ok) {
@@ -172,9 +167,7 @@ async function toggleChannel(channelId) {
 // Éditer un canal
 async function editChannel(channelId) {
     try {
-        const response = await fetch(`/api/channels/${channelId}`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const response = await authenticatedFetch(`/api/channels/${channelId}`);
 
         if (response.ok) {
             const channel = await response.json();
@@ -203,9 +196,8 @@ async function deleteChannel(channelId, channelName) {
     }
 
     try {
-        const response = await fetch(`/api/channels/${channelId}`, {
-            method: 'DELETE',
-            headers: { 'Authorization': `Bearer ${token}` }
+        const response = await authenticatedFetch(`/api/channels/${channelId}`, {
+            method: 'DELETE'
         });
 
         if (response.ok) {
@@ -225,11 +217,10 @@ async function testMeasurement(channelId, providerId, stationId) {
 
     try {
         const response = await fetch('/api/providers/test-measurement', {
+            method: 'POST',authenticatedFetch('/api/providers/test-measurement', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
+                'Content-Type': 'application/json'
             body: JSON.stringify({
                 provider_id: providerId,
                 station_id: stationId
@@ -272,10 +263,9 @@ async function previewAnnouncement(channelId) {
 
     try {
         const response = await fetch(`/api/channels/${channelId}/preview`, {
+            method: 'POST',authenticatedFetch(`/api/channels/${channelId}/preview`, {
             method: 'POST',
             headers: {
-                'Authorization': `Bearer ${token}`,
-                'Content-Type': 'application/json'
             }
         });
 
@@ -476,9 +466,7 @@ async function loadVoices() {
     try {
         const response = await fetch('/api/tts/voices', {
             headers: { 'Authorization': `Bearer ${token}` }
-        });
-
-        if (response.ok) {
+        });authenticatedFetch('/api/tts/voices'f (response.ok) {
             const voices = await response.json();
             const select = document.getElementById('voice_id');
             select.innerHTML = voices.map(v =>
@@ -520,11 +508,10 @@ async function testVoiceWithTemplate() {
         const response = await fetch('/api/tts/synthesize', {
             method: 'POST',
             headers: {
-                'Content-Type': 'application/json',
-                'Authorization': `Bearer ${token}`
-            },
-            body: JSON.stringify({
-                text: testText,
+                'Content-Type':authenticatedFetch('/api/tts/synthesize', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
                 voice_id: voiceId
             })
         });

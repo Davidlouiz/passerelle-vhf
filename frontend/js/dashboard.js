@@ -1,43 +1,7 @@
-// Vérifier l'authentification
-function checkAuth() {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        window.location.href = '/';
-        return null;
-    }
-    return token;
-}
-
-// Utilitaire pour faire des requêtes API
-async function apiRequest(url, options = {}) {
-    const token = checkAuth();
-    if (!token) return;
-
-    const headers = {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${token}`,
-        ...options.headers
-    };
-
-    const response = await fetch(url, {
-        ...options,
-        headers
-    });
-
-    if (response.status === 401) {
-        // Token expiré
-        localStorage.removeItem('token');
-        window.location.href = '/';
-        return;
-    }
-
-    return response;
-}
-
 // Charger le statut système
 async function loadSystemStatus() {
     try {
-        const response = await apiRequest('/api/status');
+        const response = await authenticatedFetch('/api/status');
         if (!response) return;
 
         if (response.ok) {

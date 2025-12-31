@@ -4,12 +4,6 @@
  * Affiche l'historique des TX avec filtres et pagination
  */
 
-// Récupérer le token d'authentification
-const token = localStorage.getItem('token');
-if (!token) {
-    window.location.href = '/static/index.html';
-}
-
 document.addEventListener('DOMContentLoaded', () => {
     // État de l'application
     const state = {
@@ -59,11 +53,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadChannels() {
         try {
-            const response = await fetch('/api/channels/', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authenticatedFetch('/api/channels/');
             if (!response.ok) throw new Error('Erreur chargement canaux');
 
             const channels = await response.json();
@@ -96,11 +86,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (state.filters.start_date) params.append('start_date', state.filters.start_date);
             if (state.filters.end_date) params.append('end_date', state.filters.end_date);
 
-            const response = await fetch(`/api/tx/history?${params}`, {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authenticatedFetch(`/api/tx/history?${params}`);
             if (!response.ok) throw new Error('Erreur chargement historique');
 
             const data = await response.json();
@@ -211,11 +197,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     async function loadStats() {
         try {
-            const response = await fetch('/api/tx/stats?hours=24', {
-                headers: {
-                    'Authorization': `Bearer ${token}`
-                }
-            });
+            const response = await authenticatedFetch('/api/tx/stats?hours=24');
             if (!response.ok) throw new Error('Erreur chargement stats');
 
             const stats = await response.json();
