@@ -44,7 +44,7 @@ async function loadProviders() {
                                 <strong>Message :</strong><br>
                                 Bonjour Monsieur MISSLIN,<br><br>
                                 J'installe une passerelle VHF permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
-                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur des canaux VHF dédiés, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
+                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur le canal VHF dédié, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
                                 Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
                                 Informations sur le projet :<br>
                                 - Projet : https://github.com/Davidlouiz/passerelle-vhf<br>
