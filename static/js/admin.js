@@ -37,30 +37,22 @@ async function loadUsers() {
             return;
         }
 
-        // Créer le tableau
-        const table = document.createElement('table');
-        table.className = 'data-table';
-
-        // En-tête
-        table.innerHTML = `
-            <thead>
-                <tr>
-                    <th>Nom d'utilisateur</th>
-                    <th>Créé le</th>
-                    <th>Dernière connexion</th>
-                    <th>Statut</th>
-                    <th>Actions</th>
-                </tr>
-            </thead>
-            <tbody id="usersTableBody">
-            </tbody>
+        // Créer un beau tableau
+        let html = `
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Nom d'utilisateur</th>
+                        <th>Statut</th>
+                        <th>Créé le</th>
+                        <th>Dernière connexion</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
         `;
 
-        const tbody = table.querySelector('#usersTableBody');
-
         users.forEach(user => {
-            const row = document.createElement('tr');
-
             // Formater les dates
             const createdAt = new Date(user.created_at).toLocaleString('fr-FR');
             const lastLogin = user.last_login_at
@@ -78,19 +70,26 @@ async function loadUsers() {
                 ? '<button class="btn btn-danger btn-sm" disabled title="Vous ne pouvez pas supprimer votre propre compte">🗑️ Supprimer</button>'
                 : `<button class="btn btn-danger btn-sm" onclick="deleteUser(${user.id}, '${user.username}')">🗑️ Supprimer</button>`;
 
-            row.innerHTML = `
-                <td><strong>${user.username}</strong> ${isCurrentUser ? '<span class="text-muted">(vous)</span>' : ''}</td>
-                <td>${createdAt}</td>
-                <td>${lastLogin}</td>
-                <td>${statusBadge}</td>
-                <td>${deleteButton}</td>
+            html += `
+                <tr>
+                    <td>
+                        <strong>${user.username}</strong>
+                        ${isCurrentUser ? '<span class="badge badge-info" style="margin-left: 0.5rem;">Vous</span>' : ''}
+                    </td>
+                    <td>${statusBadge}</td>
+                    <td>${createdAt}</td>
+                    <td>${lastLogin}</td>
+                    <td>${deleteButton}</td>
+                </tr>
             `;
-
-            tbody.appendChild(row);
         });
 
-        container.innerHTML = '';
-        container.appendChild(table);
+        html += `
+                </tbody>
+            </table>
+        `;
+
+        container.innerHTML = html;
 
     } catch (error) {
         console.error('Erreur:', error);
