@@ -31,6 +31,26 @@ async function loadProviders() {
                             <input type="password" id="ffvl_api_key" class="form-control" placeholder="Saisissez votre clé API">
                             <small class="text-muted">Pour obtenir une clé API, contactez la Fédération Française de Vol Libre (FFVL)</small>
                         </div>
+                        
+                        <div class="info-box" style="margin-top: 1rem; background-color: #e8f4f8; border-left: 4px solid #0066cc; padding: 1rem; font-size: 0.9rem;">
+                            <strong>📧 Modèle de demande</strong>
+                            <div style="margin-top: 0.5rem;">
+                                <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF
+                            </div>
+                            <div style="margin-top: 0.5rem;">
+                                <strong>Message :</strong><br>
+                                <em>Bonjour,<br><br>
+                                Je souhaite installer une passerelle VHF permettant de diffuser automatiquement les informations météorologiques issues de vos balises.<br><br>
+                                Cette installation nécessite une clé API pour accéder aux données de vos stations via balisemeteo.com.<br><br>
+                                Pourriez-vous me communiquer une clé d'accès API pour ce projet ?<br><br>
+                                Informations complémentaires :<br>
+                                - Nom du site/balise concerné : [à préciser]<br>
+                                - Localisation : [à préciser]<br>
+                                - Utilisation : diffusion VHF locale automatique<br><br>
+                                Cordialement</em>
+                            </div>
+                        </div>
+                        
                         <div id="ffvl-status" style="margin-bottom: 1rem;"></div>
                         <button type="submit" class="btn btn-primary">Enregistrer</button>
                     </form>
