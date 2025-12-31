@@ -505,18 +505,18 @@ async function testVoiceWithTemplate() {
         .replace(/{measurement_age_minutes}/g, '5');
 
     try {
-        const response = await fetch('/api/tts/synthesize', {
-            method: 'POST',
-            headers: {
-                'Content-Type':authenticatedFetch('/api/tts/synthesize', {
+        const response = await authenticatedFetch('/api/tts/synthesize', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                text: testText,
                 voice_id: voiceId
             })
         });
 
-        if (response.ok) {
+        if (response && response.ok) {
             const data = await response.json();
             const audio = new Audio(data.audio_url);
             audio.play();
