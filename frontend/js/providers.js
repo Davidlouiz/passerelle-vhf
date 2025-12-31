@@ -35,18 +35,24 @@ async function loadProviders() {
                         <div class="info-box" style="margin-top: 1rem; background-color: #e8f4f8; border-left: 4px solid #0066cc; padding: 1rem; font-size: 0.9rem;">
                             <strong>📧 Modèle de demande</strong>
                             <div style="margin-top: 0.5rem;">
-                                <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF
+                                <strong>Destinataire :</strong> Gilles MISSLIN (FFVL)
+                            </div>
+                            <div style="margin-top: 0.5rem;">
+                                <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF météo automatique
                             </div>
                             <div style="margin-top: 0.5rem;">
                                 <strong>Message :</strong><br>
-                                <em>Bonjour,<br><br>
-                                Je souhaite installer une passerelle VHF permettant de diffuser automatiquement les informations météorologiques issues de vos balises.<br><br>
-                                Cette installation nécessite une clé API pour accéder aux données de vos stations via balisemeteo.com.<br><br>
-                                Pourriez-vous me communiquer une clé d'accès API pour ce projet ?<br><br>
-                                Informations complémentaires :<br>
-                                - Nom du site/balise concerné : [à préciser]<br>
+                                <em>Bonjour Monsieur Misslin,<br><br>
+                                Je travaille sur un projet de passerelle VHF open-source permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
+                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur des canaux VHF dédiés, permettant ainsi aux pilotes de recevoir des bulletins à jour sans connexion internet.<br><br>
+                                Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
+                                Informations sur le projet :<br>
+                                - Projet open-source : https://github.com/Davidlouiz/passerelle-vhf<br>
+                                - Site/balise concerné : [à préciser]<br>
                                 - Localisation : [à préciser]<br>
-                                - Utilisation : diffusion VHF locale automatique<br><br>
+                                - Utilisation : diffusion VHF automatique locale<br><br>
+                                Pourriez-vous me communiquer une clé d'accès API pour cette installation ?<br><br>
+                                Je reste à votre disposition pour tout complément d'information.<br><br>
                                 Cordialement</em>
                             </div>
                         </div>
