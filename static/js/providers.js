@@ -32,28 +32,32 @@ async function loadProviders() {
                             <small class="text-muted">Pour obtenir une clé API, contactez la Fédération Française de Vol Libre (FFVL)</small>
                         </div>
                         
-                        <div class="info-box" style="margin-top: 1rem; background-color: #e8f4f8; border-left: 4px solid #0066cc; padding: 1rem; font-size: 0.9rem;">
-                            <strong>📧 Modèle de demande</strong>
-                            <div style="margin-top: 0.5rem;">
-                                <strong>Destinataire :</strong> Gilles MISSLIN (FFVL)
-                            </div>
-                            <div style="margin-top: 0.5rem;">
-                                <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF météo automatique
-                            </div>
-                            <div style="margin-top: 0.5rem;">
-                                <strong>Message :</strong><br>
-                                Bonjour Monsieur MISSLIN,<br><br>
-                                J'installe une passerelle VHF permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
-                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur le canal VHF dédié, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
-                                Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
-                                Informations sur le projet :<br>
-                                - Projet : <a href="https://github.com/Davidlouiz/passerelle-vhf" target="_blank" style="color: #0066cc; text-decoration: underline;">https://github.com/Davidlouiz/passerelle-vhf</a><br>
-                                - Site/balise concerné : [à préciser]<br>
-                                - Localisation : [à préciser]<br>
-                                - Utilisation : diffusion VHF automatique locale<br><br>
-                                Pourriez-vous me communiquer une clé d'accès API pour cette installation ?<br><br>
-                                Je reste à votre disposition pour tout complément d'information.<br><br>
-                                Cordialement
+                        <div style="margin-top: 1rem;">
+                            <button type="button" class="btn btn-sm btn-info" onclick="toggleEmailTemplate()" style="margin-bottom: 0.5rem;">
+                                📧 Modèle de demande
+                            </button>
+                            <div id="emailTemplate" style="display: none; background-color: #e8f4f8; border-left: 4px solid #0066cc; padding: 1rem; font-size: 0.9rem;">
+                                <div style="margin-top: 0.5rem;">
+                                    <strong>Destinataire :</strong> Gilles MISSLIN (FFVL)
+                                </div>
+                                <div style="margin-top: 0.5rem;">
+                                    <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF météo automatique
+                                </div>
+                                <div style="margin-top: 0.5rem;">
+                                    <strong>Message :</strong><br>
+                                    Bonjour Monsieur MISSLIN,<br><br>
+                                    J'installe une passerelle VHF permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
+                                    Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur le canal VHF dédié, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
+                                    Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
+                                    Informations sur le projet :<br>
+                                    - Projet : <a href="https://github.com/Davidlouiz/passerelle-vhf" target="_blank" style="color: #0066cc; text-decoration: underline;">https://github.com/Davidlouiz/passerelle-vhf</a><br>
+                                    - Site/balise concerné : [à préciser]<br>
+                                    - Localisation : [à préciser]<br>
+                                    - Utilisation : diffusion VHF automatique locale<br><br>
+                                    Pourriez-vous me communiquer une clé d'accès API pour cette installation ?<br><br>
+                                    Je reste à votre disposition pour tout complément d'information.<br><br>
+                                    Cordialement
+                                </div>
                             </div>
                         </div>
                         
@@ -129,6 +133,14 @@ async function removeFFVLKey() {
         alert('Erreur de connexion au serveur');
     }
 }
+
+// Toggle affichage du modèle d'email
+window.toggleEmailTemplate = function() {
+    const template = document.getElementById('emailTemplate');
+    if (template) {
+        template.style.display = template.style.display === 'none' ? 'block' : 'none';
+    }
+};
 
 // Charger au démarrage
 loadProviders();
