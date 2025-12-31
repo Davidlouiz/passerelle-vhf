@@ -18,20 +18,20 @@ function updateDashboard(data) {
     // Statut système
     document.getElementById('master-enabled').textContent =
         data.master_enabled ? '✓ Activé' : '✗ Désactivé';
-    
-    document.getElementById('master-enabled').className = 
+
+    document.getElementById('master-enabled').className =
         data.master_enabled ? 'stat-value text-success' : 'stat-value text-danger';
 
     document.getElementById('active-channels').textContent =
         `${data.active_channels} / ${data.total_channels}`;
-    
+
     document.getElementById('tx-lock-status').textContent =
         data.tx_lock_active ? '🔒 Occupé' : '✓ Libre';
-    
+
     // Runner status avec boutons de contrôle
     const runnerStatusEl = document.getElementById('runner-status');
     const runnerStatus = data.runner_status;
-    
+
     if (runnerStatus === 'running') {
         runnerStatusEl.innerHTML = `
             <span onclick="stopRunner()" class="text-success" style="cursor: pointer;">
@@ -122,11 +122,11 @@ function updateDashboard(data) {
                     ${data.recent_tx.map(tx => `
                         <tr>
                             <td>${new Date(tx.sent_at).toLocaleString('fr-FR', {
-                                day: '2-digit',
-                                month: '2-digit',
-                                hour: '2-digit',
-                                minute: '2-digit'
-                            })}</td>
+            day: '2-digit',
+            month: '2-digit',
+            hour: '2-digit',
+            minute: '2-digit'
+        })}</td>
                             <td>${escapeHtml(tx.channel_name)}</td>
                             <td>
                                 <span class="badge badge-${tx.mode === 'SCHEDULED' ? 'primary' : 'info'} badge-sm">
@@ -192,9 +192,9 @@ async function startRunner() {
         const response = await authenticatedFetch('/api/status/runner/start', {
             method: 'POST'
         });
-        
+
         if (!response) return;
-        
+
         if (response.ok) {
             loadSystemStatus(); // Rafraîchir immédiatement
         } else {
@@ -212,9 +212,9 @@ async function stopRunner() {
         const response = await authenticatedFetch('/api/status/runner/stop', {
             method: 'POST'
         });
-        
+
         if (!response) return;
-        
+
         if (response.ok) {
             loadSystemStatus(); // Rafraîchir immédiatement
         } else {

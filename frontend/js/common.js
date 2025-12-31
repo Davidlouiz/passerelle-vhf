@@ -21,21 +21,21 @@ function handleAuthError(error) {
 // Fonction fetch avec gestion automatique des erreurs 401
 async function authenticatedFetch(url, options = {}) {
     const token = localStorage.getItem('token');
-    
+
     // Ajouter le header Authorization
     const headers = options.headers || {};
     headers['Authorization'] = `Bearer ${token}`;
     options.headers = headers;
-    
+
     try {
         const response = await fetch(url, options);
-        
+
         // Si 401, déconnecter automatiquement
         if (response.status === 401) {
             handleAuthError('Token expiré ou invalide');
             throw new Error('Session expirée');
         }
-        
+
         return response;
     } catch (error) {
         // Si erreur réseau ou autre

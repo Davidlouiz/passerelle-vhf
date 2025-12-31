@@ -205,6 +205,7 @@ def update_channel(
         # Si les offsets changent, supprimer toutes les TX PENDING de ce canal
         if channel.offsets_seconds_json != data.offsets_seconds_json:
             from app.models import TxHistory
+
             pending_tx = (
                 db.query(TxHistory)
                 .filter(
@@ -220,15 +221,18 @@ def update_channel(
                 db.commit()
                 # Log
                 import logging
+
                 logger = logging.getLogger(__name__)
-                logger.info(f"Annulé {len(pending_tx)} TX PENDING du canal {channel_id} (changement offsets)")
-        
+                logger.info(
+                    f"Annulé {len(pending_tx)} TX PENDING du canal {channel_id} (changement offsets)"
+                )
+
         channel.offsets_seconds_json = data.offsets_seconds_json
-        
+
         # Réinitialiser next_tx_at pour que le runner recalcule
         if channel.runtime:
             channel.runtime.next_tx_at = None
-    
+
     if data.measurement_period_seconds is not None:
         channel.measurement_period_seconds = data.measurement_period_seconds
     if data.min_interval_between_tx_seconds is not None:
@@ -428,7 +432,9 @@ async def preview_channel(
             "measurement": {
                 "wind_avg_kmh": measurement.wind_avg_kmh,
                 "wind_max_kmh": measurement.wind_max_kmh,
-                "measurement_at": measurement.measurement_at.isoformat() + "Z" if not measurement.measurement_at.isoformat().endswith('Z') else measurement.measurement_at.isoformat(),
+                "measurement_at": measurement.measurement_at.isoformat() + "Z"
+                if not measurement.measurement_at.isoformat().endswith("Z")
+                else measurement.measurement_at.isoformat(),
                 "age_minutes": measurement_age_minutes,
             },
             "was_cached": was_cached,

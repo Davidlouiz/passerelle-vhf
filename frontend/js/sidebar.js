@@ -56,7 +56,7 @@ function initSidebar(currentPage) {
     if (appContainer) {
         // Insérer la sidebar au début
         appContainer.insertAdjacentHTML('afterbegin', generateSidebar(currentPage));
-        
+
         // Gérer le bouton de déconnexion
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {

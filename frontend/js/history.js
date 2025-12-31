@@ -120,16 +120,16 @@ document.addEventListener('DOMContentLoaded', () => {
         historyTable.innerHTML = records.map(tx => {
             const statusClass = getStatusClass(tx.status);
             const modeLabel = tx.mode === 'SCHEDULED' ? 'Planifiée' : 'Test manuel';
-            
+
             // Pour les PENDING, afficher planned_at en grisé
             let dateDisplay;
             if (tx.status === 'PENDING') {
-                dateDisplay = tx.planned_at ? 
-                    `<span style="color: #999;">${new Date(tx.planned_at).toLocaleString('fr-FR')}</span>` : 
+                dateDisplay = tx.planned_at ?
+                    `<span style="color: #999;">${new Date(tx.planned_at).toLocaleString('fr-FR')}</span>` :
                     '<span style="color: #999;">-</span>';
             } else {
-                dateDisplay = tx.sent_at ? 
-                    new Date(tx.sent_at).toLocaleString('fr-FR') : 
+                dateDisplay = tx.sent_at ?
+                    new Date(tx.sent_at).toLocaleString('fr-FR') :
                     '-';
             }
 

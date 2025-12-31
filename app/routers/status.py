@@ -130,12 +130,14 @@ def start_runner():
         # Vérifier si déjà en cours
         status = check_runner_status()
         if status == "running":
-            raise HTTPException(status_code=400, detail="Le runner est déjà en cours d'exécution")
-        
+            raise HTTPException(
+                status_code=400, detail="Le runner est déjà en cours d'exécution"
+            )
+
         # Déterminer le chemin Python à utiliser
         venv_python = "/home/david/git/Passerelle VHF/venv/bin/python"
         python_cmd = venv_python if os.path.exists(venv_python) else "python3"
-        
+
         # Démarrer le runner en arrière-plan
         subprocess.Popen(
             [python_cmd, "-m", "app.runner"],
@@ -144,12 +146,14 @@ def start_runner():
             stderr=subprocess.DEVNULL,
             start_new_session=True,
         )
-        
+
         return {"status": "success", "message": "Runner démarré"}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur au démarrage du runner: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erreur au démarrage du runner: {str(e)}"
+        )
 
 
 @router.post("/runner/stop")
@@ -159,8 +163,10 @@ def stop_runner():
         # Vérifier si en cours
         status = check_runner_status()
         if status == "stopped":
-            raise HTTPException(status_code=400, detail="Le runner n'est pas en cours d'exécution")
-        
+            raise HTTPException(
+                status_code=400, detail="Le runner n'est pas en cours d'exécution"
+            )
+
         # Arrêter le runner
         result = subprocess.run(
             ["pkill", "-f", "python.*app.runner"],
@@ -168,12 +174,16 @@ def stop_runner():
             text=True,
             timeout=5,
         )
-        
+
         if result.returncode not in [0, 1]:  # 1 = pas de processus trouvé
-            raise HTTPException(status_code=500, detail="Erreur lors de l'arrêt du runner")
-        
+            raise HTTPException(
+                status_code=500, detail="Erreur lors de l'arrêt du runner"
+            )
+
         return {"status": "success", "message": "Runner arrêté"}
     except HTTPException:
         raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur à l'arrêt du runner: {str(e)}")
+        raise HTTPException(
+            status_code=500, detail=f"Erreur à l'arrêt du runner: {str(e)}"
+        )
