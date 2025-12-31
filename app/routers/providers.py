@@ -223,7 +223,7 @@ async def test_measurement(
             )
 
         return MeasurementResponse(
-            measurement_at=measurement.measurement_at.isoformat(),
+            measurement_at=measurement.measurement_at.isoformat() + "Z" if not measurement.measurement_at.isoformat().endswith('Z') else measurement.measurement_at.isoformat(),
             wind_avg_kmh=measurement.wind_avg_kmh,
             wind_max_kmh=measurement.wind_max_kmh,
             wind_min_kmh=measurement.wind_min_kmh,
