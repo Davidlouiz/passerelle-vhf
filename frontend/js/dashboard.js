@@ -198,15 +198,13 @@ async function startRunner() {
         if (!response) return;
         
         if (response.ok) {
-            alert('Runner démarré avec succès');
             loadSystemStatus(); // Rafraîchir immédiatement
         } else {
             const error = await response.json();
-            alert(`Erreur: ${error.detail || 'Impossible de démarrer le runner'}`);
+            console.error('Erreur démarrage runner:', error.detail);
         }
     } catch (err) {
         console.error('Erreur lors du démarrage du runner:', err);
-        alert('Erreur lors du démarrage du runner');
     }
 }
 
@@ -224,15 +222,13 @@ async function stopRunner() {
         if (!response) return;
         
         if (response.ok) {
-            alert('Runner arrêté avec succès');
             loadSystemStatus(); // Rafraîchir immédiatement
         } else {
             const error = await response.json();
-            alert(`Erreur: ${error.detail || 'Impossible d\'arrêter le runner'}`);
+            console.error('Erreur arrêt runner:', error.detail);
         }
     } catch (err) {
         console.error('Erreur lors de l\'arrêt du runner:', err);
-        alert('Erreur lors de l\'arrêt du runner');
     }
 }
 
