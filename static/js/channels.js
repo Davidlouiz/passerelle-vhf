@@ -60,7 +60,7 @@ function displayChannels(channels) {
                             <button onclick="toggleChannel(${ch.id})" class="btn btn-sm btn-secondary">
                                 ${ch.is_enabled ? 'Désactiver' : 'Activer'}
                             </button>
-                            <button onclick="editChannel(${ch.id})" class="btn btn-sm btn-secondary">Éditer</button>
+                            <button onclick="editChannel(${ch.id})" class="btn btn-sm btn-secondary">Modifier</button>
                             <button onclick="deleteChannel(${ch.id}, '${ch.name}')" class="btn btn-sm btn-danger">Supprimer</button>
                         </td>
                     </tr>
@@ -173,7 +173,7 @@ async function editChannel(channelId) {
             const channel = await response.json();
             currentChannelId = channelId;
 
-            document.getElementById('modalTitle').textContent = 'Éditer le canal';
+            document.getElementById('modalTitle').textContent = 'Modifier le canal';
             document.getElementById('channel_name').value = channel.name;
             document.getElementById('station_url').value = channel.station_visual_url_cache;
             document.getElementById('template').value = channel.template_text;
