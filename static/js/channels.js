@@ -21,8 +21,8 @@ function displayChannels(channels) {
 
     if (channels.length === 0) {
         container.innerHTML = `
-            <p class="text-muted">Aucune balise configurée pour le moment.</p>
-            <p class="text-muted">Cliquez sur "+ Nouvelle balise" pour commencer.</p>
+            <p class="text-muted">Aucun canal configuré pour le moment.</p>
+            <p class="text-muted">Cliquez sur "+ Nouveau canal" pour commencer.</p>
         `;
         return;
     }
@@ -75,7 +75,7 @@ function displayChannels(channels) {
 // Ouvrir le modal de création
 document.getElementById('newChannelBtn').addEventListener('click', () => {
     currentChannelId = null;
-    document.getElementById('modalTitle').textContent = 'Nouvelle balise';
+    document.getElementById('modalTitle').textContent = 'Nouveau canal';
     document.getElementById('channelForm').reset();
     document.getElementById('channelModal').style.display = 'flex';
 
@@ -173,7 +173,7 @@ async function editChannel(channelId) {
             const channel = await response.json();
             currentChannelId = channelId;
 
-            document.getElementById('modalTitle').textContent = 'Éditer la balise';
+            document.getElementById('modalTitle').textContent = 'Éditer le canal';
             document.getElementById('channel_name').value = channel.name;
             document.getElementById('station_url').value = channel.station_visual_url_cache;
             document.getElementById('template').value = channel.template_text;
@@ -189,9 +189,9 @@ async function editChannel(channelId) {
     }
 }
 
-// Supprimer une balise
+// Supprimer un canal
 async function deleteChannel(channelId, channelName) {
-    if (!confirm(`Voulez-vous vraiment supprimer la balise "${channelName}" ?`)) {
+    if (!confirm(`Voulez-vous vraiment supprimer le canal "${channelName}" ?`)) {
         return;
     }
 
