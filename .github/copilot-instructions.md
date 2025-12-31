@@ -15,10 +15,12 @@ source venv/bin/activate
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000  # Terminal 1
 python -m app.runner                                         # Terminal 2
 pytest tests/ -v            # Tests (fail-safe = critique)
+cp -r frontend/* static/    # Copie frontend → static après modif HTML/CSS/JS
 ```
 
 **DB locale** : auto-créée dans `./data/vhf-balise.db` (VHF_DATA_DIR non défini)  
-**DB prod** : `export VHF_DATA_DIR=/opt/vhf-balise/data` (voir [app/database.py](app/database.py#L18-L22))
+**DB prod** : `export VHF_DATA_DIR=/opt/vhf-balise/data` (voir [app/database.py](app/database.py#L18-L22))  
+**Init manuelle DB** : `python -m app.init_db` (si `./dev.sh` ne suffit pas)
 
 ## ⚠️ Contrainte absolue : Fail-Safe
 
@@ -108,8 +110,27 @@ Variables : `{station_name}`, `{wind_avg_kmh}`, `{wind_max_kmh}`, `{wind_directi
 ### Frontend statique
 Fichiers dans `static/` (copie de `frontend/`) servis par FastAPI `StaticFiles`. Pas de framework JS - vanilla uniquement.
 
+**Auth JWT** : Token stocké dans `localStorage`, envoyé via header `Authorization: Bearer <token>`  
+**Helper fetch** : Utiliser `authenticatedFetch(url, options)` (dans [common.js](frontend/js/common.js)) au lieu de `fetch()` - gère auto header + redirect 401  
+**Workflow modif frontend** : Éditer `frontend/*` → copier vers `static/` (`cp -r frontend/* static/`) → reload navigateur
+
+## Authentification ([app/auth.py](app/auth.py))
+
+**Login** : POST `/api/auth/login` → retourne JWT (expire 8h)  
+**Compte par défaut** : `admin` / `admin` (CHANGER en production via UI ou POST `/api/auth/change-password`)  
+**Protection endpoints** : Dependency `current_user = Depends(get_current_user)` sur tous routers sauf `/api/auth/login`  
+**Frontend** : `authenticatedFetch()` ajoute header JWT + redirige vers login si 401
+
 ## Tests critiques
 
 **Fail-safe** : [tests/test_fail_safe_integration.py](tests/test_fail_safe_integration.py) - vérifie qu'aucune TX si mesure périmée OU commit échoue  
 **Idempotence** : [tests/test_idempotence.py](tests/test_idempotence.py) - tx_id unique empêche duplications  
-**Tous** : `pytest tests/ -v` (utilise MockPTTController, DB SQLite in-memory)
+**Tous** : `pytest tests/ -v` (utilise MockPTTController, DB SQLite in-memory)  
+**Fixture commune** : [tests/conftest.py](tests/conftest.py) fournit `db_session` (SQLite in-memory + auto-cleanup)
+
+## Débogage & Logs
+
+**Logs runner** : `./data/logs/runner.log` ou `journalctl -u vhf-balise-runner -f` (prod)  
+**Logs web** : `journalctl -u vhf-balise-web -f` (prod) ou stdout terminal dev  
+**SQL debug** : Mettre `echo=True` dans [app/database.py](app/database.py#L30) `create_engine()`  
+**Audio dev** : Cache TTS dans `./data/audio_cache/` - supprimer pour forcer régénération test

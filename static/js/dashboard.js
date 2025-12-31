@@ -15,7 +15,20 @@ async function loadSystemStatus() {
 
 // Mettre à jour le dashboard
 function updateDashboard(data) {
-    // Statut système
+    // Statut réception (runner)
+    const runnerStatusEl = document.getElementById('runner-status');
+    if (data.runner_status === 'running') {
+        runnerStatusEl.textContent = '✓ Activé';
+        runnerStatusEl.className = 'stat-value text-success';
+    } else if (data.runner_status === 'stopped') {
+        runnerStatusEl.textContent = '✗ Désactivé';
+        runnerStatusEl.className = 'stat-value text-danger';
+    } else {
+        runnerStatusEl.textContent = '? Inconnu';
+        runnerStatusEl.className = 'stat-value text-secondary';
+    }
+
+    // Statut émission
     document.getElementById('master-enabled').textContent =
         data.master_enabled ? '✓ Activé' : '✗ Désactivé';
 
@@ -25,35 +38,16 @@ function updateDashboard(data) {
     document.getElementById('active-channels').textContent =
         `${data.active_channels} / ${data.total_channels}`;
 
-    document.getElementById('tx-lock-status').textContent =
-        data.tx_lock_active ? '🔒 Occupé' : '✓ Libre';
-
-    // Runner status avec boutons de contrôle
-    const runnerStatusEl = document.getElementById('runner-status');
-    const runnerStatus = data.runner_status;
-
-    if (runnerStatus === 'running') {
-        runnerStatusEl.innerHTML = `
-            <span onclick="stopRunner()" class="text-success" style="cursor: pointer;">
-                ✓ En cours
-            </span>
-        `;
-    } else if (runnerStatus === 'stopped') {
-        runnerStatusEl.innerHTML = `
-            <span onclick="startRunner()" class="text-danger" style="cursor: pointer;">
-                ✗ Arrêté
-            </span>
-        `;
-    } else {
-        runnerStatusEl.textContent = 'État inconnu';
-    }
+    // Intervalle de polling
+    document.getElementById('poll-interval').textContent = 
+        data.poll_interval_seconds ? `${data.poll_interval_seconds}s` : '—';
 
     const statusBadge = document.getElementById('system-status');
     if (data.master_enabled) {
-        statusBadge.textContent = 'Système actif';
+        statusBadge.textContent = 'Émission activée';
         statusBadge.className = 'badge badge-success';
     } else {
-        statusBadge.textContent = 'Système désactivé';
+        statusBadge.textContent = 'Émission désactivée';
         statusBadge.className = 'badge badge-danger';
     }
 
@@ -185,49 +179,6 @@ function escapeHtml(text) {
     div.textContent = text;
     return div.innerHTML;
 }
-
-// Démarrer le runner
-async function startRunner() {
-    try {
-        const response = await authenticatedFetch('/api/status/runner/start', {
-            method: 'POST'
-        });
-
-        if (!response) return;
-
-        if (response.ok) {
-            loadSystemStatus(); // Rafraîchir immédiatement
-        } else {
-            const error = await response.json();
-            console.error('Erreur démarrage runner:', error.detail);
-        }
-    } catch (err) {
-        console.error('Erreur lors du démarrage du runner:', err);
-    }
-}
-
-// Arrêter le runner
-async function stopRunner() {
-    try {
-        const response = await authenticatedFetch('/api/status/runner/stop', {
-            method: 'POST'
-        });
-
-        if (!response) return;
-
-        if (response.ok) {
-            loadSystemStatus(); // Rafraîchir immédiatement
-        } else {
-            const error = await response.json();
-            console.error('Erreur arrêt runner:', error.detail);
-        }
-    } catch (err) {
-        console.error('Erreur lors de l\'arrêt du runner:', err);
-    }
-}
-
-// Déconnexion - maintenant géré par sidebar.js
-// Le code de logout est déplacé dans sidebar.js
 
 // Charger les données au démarrage
 checkAuth();

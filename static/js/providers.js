@@ -1,15 +1,15 @@
-// Gestion de la page providers
+// Gestion de la page sources
 
-// Charger le statut des providers
+// Charger le statut des sources
 async function loadProviders() {
     try {
         const response = await authenticatedFetch('/api/providers/');
 
         if (response && response.ok) {
-            const providers = await response.json();
+            const sources = await response.json();
 
             // Afficher le statut FFVL
-            const ffvl = providers.find(p => p.provider_id === 'ffvl');
+            const ffvl = sources.find(p => p.provider_id === 'ffvl');
             const container = document.getElementById('ffvl-container');
 
             if (ffvl && ffvl.is_configured) {
@@ -71,7 +71,7 @@ async function loadProviders() {
             }
         }
     } catch (err) {
-        console.error('Erreur lors du chargement des providers:', err);
+        console.error('Erreur lors du chargement des sources:', err);
     }
 }
 

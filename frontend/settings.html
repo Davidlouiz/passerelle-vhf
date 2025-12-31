@@ -21,13 +21,178 @@
             </header>
 
             <div class="content">
+                <!-- Statut système -->
                 <div class="card">
                     <div class="card-header">
-                        <h3>Configuration globale</h3>
+                        <h3>Statut système</h3>
                     </div>
                     <div class="card-body">
-                        <p class="text-muted">⚠️ Interface de configuration non encore implémentée</p>
-                        <p>Les paramètres peuvent être modifiés directement dans la base de données pour le moment.</p>
+                        <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
+                            <div class="stat-item">
+                                <div class="stat-label">📡 Réception</div>
+                                <div id="runnerStatus" class="stat-value">
+                                    <span class="badge badge-secondary">Chargement...</span>
+                                </div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">📻 Émission</div>
+                                <div id="masterStatus" class="stat-value">
+                                    <span class="badge badge-secondary">Chargement...</span>
+                                </div>
+                            </div>
+                        </div>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
+                            <button id="runnerToggleBtn" class="btn btn-secondary" disabled>
+                                Chargement...
+                            </button>
+                            <button id="emissionToggleBtn" class="btn btn-secondary" disabled>
+                                Chargement...
+                            </button>
+                        </div>
+                        <p class="text-muted" style="margin-top: 2rem;">
+                            <strong>⚠️ Important :</strong> La <strong>Réception</strong> récupère les mesures météo auprès des sources.
+                            L'<strong>Émission</strong> contrôle les transmissions radio VHF.
+                            Les deux doivent être activés pour que le système fonctionne.
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Formulaire de configuration -->
+                <form id="settingsForm">
+                    <!-- Planification -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Planification</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="poll_interval_seconds">
+                                    Intervalle de polling (secondes)
+                                </label>
+                                <input type="number" id="poll_interval_seconds" class="form-control" min="10" max="600"
+                                    step="10" required>
+                                <small class="form-text text-muted">
+                                    Fréquence de vérification des nouvelles mesures auprès des sources (10-600
+                                    secondes).
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="inter_announcement_pause_seconds">
+                                    Pause entre annonces (secondes)
+                                </label>
+                                <input type="number" id="inter_announcement_pause_seconds" class="form-control" min="0"
+                                    max="60" step="1" required>
+                                <small class="form-text text-muted">
+                                    Pause entre chaque émission pour séparer clairement les annonces (0-60 secondes).
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Configuration PTT -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Configuration PTT (Push-To-Talk)</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="ptt_gpio_pin">
+                                    Pin GPIO PTT
+                                </label>
+                                <input type="number" id="ptt_gpio_pin" class="form-control" min="0" max="40"
+                                    placeholder="Laisser vide pour mode mock">
+                                <small class="form-text text-muted">
+                                    Numéro de pin GPIO pour contrôler le PTT (Raspberry Pi uniquement). Laisser vide
+                                    pour mode mock (développement).
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ptt_active_level">
+                                    Niveau actif PTT
+                                </label>
+                                <select id="ptt_active_level" class="form-control" required>
+                                    <option value="0">LOW (0V)</option>
+                                    <option value="1">HIGH (3.3V)</option>
+                                </select>
+                                <small class="form-text text-muted">
+                                    Niveau logique pour activer le PTT sur la pin GPIO.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ptt_lead_ms">
+                                    Délai avant audio (millisecondes)
+                                </label>
+                                <input type="number" id="ptt_lead_ms" class="form-control" min="0" max="2000" step="50"
+                                    required>
+                                <small class="form-text text-muted">
+                                    Temps d'attente après activation PTT avant de jouer l'audio (0-2000ms). Permet à
+                                    l'émetteur de se stabiliser.
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="ptt_tail_ms">
+                                    Délai après audio (millisecondes)
+                                </label>
+                                <input type="number" id="ptt_tail_ms" class="form-control" min="0" max="2000" step="50"
+                                    required>
+                                <small class="form-text text-muted">
+                                    Temps d'attente après la fin de l'audio avant de désactiver PTT (0-2000ms).
+                                </small>
+                            </div>
+
+                            <div class="form-group">
+                                <label>
+                                    Timeout de transmission
+                                </label>
+                                <p id="tx_timeout_display" class="form-control-plaintext">
+                                    30 secondes
+                                </p>
+                                <small class="form-text text-muted">
+                                    Timeout maximum pour une transmission (verrouillé à 30 secondes pour sécurité). Le
+                                    watchdog forcera PTT OFF si dépassé.
+                                </small>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Boutons d'action -->
+                    <div class="card">
+                        <div class="card-body">
+                            <button type="submit" class="btn btn-primary">
+                                Enregistrer les paramètres
+                            </button>
+                            <button type="button" class="btn btn-secondary ml-2" onclick="loadSettings()">
+                                Annuler
+                            </button>
+                        </div>
+                    </div>
+                </form>
+
+                <!-- Aide -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>💡 Aide</h3>
+                    </div>
+                    <div class="card-body">
+                        <h4>Paramètres recommandés</h4>
+                        <ul>
+                            <li><strong>Intervalle de polling :</strong> 60 secondes (équilibre entre fraîcheur des
+                                données et charge réseau)</li>
+                            <li><strong>Pause entre annonces :</strong> 10 secondes (permet de séparer clairement chaque émission)
+                            </li>
+                            <li><strong>PTT lead :</strong> 500ms (standard pour la plupart des émetteurs VHF)</li>
+                            <li><strong>PTT tail :</strong> 500ms (permet coupure propre)</li>
+                        </ul>
+
+                        <h4>Mode développement</h4>
+                        <p>
+                            Pour tester sans matériel radio, laisser <strong>Pin GPIO PTT vide</strong>.
+                            Le système utilisera un contrôleur PTT mock qui simule les opérations sans activer de GPIO.
+                        </p>
                     </div>
                 </div>
             </div>
@@ -36,6 +201,7 @@
 
     <script src="/static/js/common.js"></script>
     <script src="/static/js/sidebar.js"></script>
+    <script src="/static/js/settings.js"></script>
     <script>
         // Initialiser la sidebar
         initSidebar('settings');

@@ -32,7 +32,7 @@ function displayChannels(channels) {
             <thead>
                 <tr>
                     <th>Nom</th>
-                    <th>Provider</th>
+                    <th>Source</th>
                     <th>Statut</th>
                     <th>Test</th>
                     <th>Actions</th>

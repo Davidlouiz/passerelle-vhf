@@ -19,7 +19,7 @@
             <header class="page-header">
                 <h1>Tableau de bord</h1>
                 <div class="header-actions">
-                    <span id="system-status" class="badge badge-danger">Système désactivé</span>
+                    <span id="system-status" class="badge badge-danger">Émission désactivée</span>
                 </div>
             </header>
 
@@ -32,7 +32,11 @@
                     <div class="card-body">
                         <div class="stats-grid">
                             <div class="stat-item">
-                                <div class="stat-label">Master Enabled</div>
+                                <div class="stat-label">📡 Réception</div>
+                                <div id="runner-status" class="stat-value">—</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-label">📻 Émission</div>
                                 <div id="master-enabled" class="stat-value">—</div>
                             </div>
                             <div class="stat-item">
@@ -40,12 +44,8 @@
                                 <div id="active-channels" class="stat-value">—</div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-label">Verrou TX</div>
-                                <div id="tx-lock-status" class="stat-value">Libre</div>
-                            </div>
-                            <div class="stat-item" style="grid-column: span 1;">
-                                <div class="stat-label">Runner</div>
-                                <div id="runner-status" class="stat-value">—</div>
+                                <div class="stat-label">Intervalle polling</div>
+                                <div id="poll-interval" class="stat-value">—</div>
                             </div>
                         </div>
                     </div>
