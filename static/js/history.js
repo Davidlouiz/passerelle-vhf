@@ -234,8 +234,22 @@ document.addEventListener('DOMContentLoaded', () => {
         state.filters.channel_id = channelFilter.value || null;
         state.filters.status = statusFilter.value || null;
         state.filters.mode = modeFilter.value || null;
-        state.filters.start_date = startDateInput.value || null;
-        state.filters.end_date = endDateInput.value || null;
+        
+        // Convertir les dates locales en UTC ISO pour l'API
+        if (startDateInput.value) {
+            const localDate = new Date(startDateInput.value);
+            state.filters.start_date = localDate.toISOString();
+        } else {
+            state.filters.start_date = null;
+        }
+        
+        if (endDateInput.value) {
+            const localDate = new Date(endDateInput.value);
+            state.filters.end_date = localDate.toISOString();
+        } else {
+            state.filters.end_date = null;
+        }
+        
         state.currentPage = 0;
 
         loadHistory();
