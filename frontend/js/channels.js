@@ -216,18 +216,18 @@ async function testMeasurement(channelId, providerId, stationId) {
     btn.innerHTML = '⏳ Test...';
 
     try {
-        const response = await fetch('/api/providers/test-measurement', {
-            method: 'POST',authenticatedFetch('/api/providers/test-measurement', {
+        const response = await authenticatedFetch('/api/providers/test-measurement', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
+            },
             body: JSON.stringify({
                 provider_id: providerId,
                 station_id: stationId
             })
         });
 
-        if (response.ok) {
+        if (response && response.ok) {
             const data = await response.json();
             const date = new Date(data.measurement_at);
             const age = Math.round((Date.now() - date.getTime()) / 60000); // minutes
@@ -242,7 +242,7 @@ async function testMeasurement(channelId, providerId, stationId) {
                 'success'
             );
         } else {
-            const error = await response.json();
+            const error = response ? await response.json() : {};
             showNotification('Erreur', error.detail || 'Erreur inconnue', 'error');
         }
     } catch (err) {
@@ -262,21 +262,18 @@ async function previewAnnouncement(channelId) {
     btn.innerHTML = '⏳';
 
     try {
-        const response = await fetch(`/api/channels/${channelId}/preview`, {
-            method: 'POST',authenticatedFetch(`/api/channels/${channelId}/preview`, {
-            method: 'POST',
-            headers: {
-            }
+        const response = await authenticatedFetch(`/api/channels/${channelId}/preview`, {
+            method: 'POST'
         });
 
-        if (response.ok) {
+        if (response && response.ok) {
             const data = await response.json();
 
             // Afficher le modal de prévisualisation
             showPreviewModal(data);
 
         } else {
-            const error = await response.json();
+            const error = response ? await response.json() : {};
             showNotification('Erreur', error.detail || 'Erreur inconnue', 'error');
         }
     } catch (err) {
@@ -464,9 +461,9 @@ function initVariableMenu() {
 // Charger les voix disponibles
 async function loadVoices() {
     try {
-        const response = await fetch('/api/tts/voices', {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });authenticatedFetch('/api/tts/voices'f (response.ok) {
+        const response = await authenticatedFetch('/api/tts/voices');
+        
+        if (response && response.ok) {
             const voices = await response.json();
             const select = document.getElementById('voice_id');
             select.innerHTML = voices.map(v =>
