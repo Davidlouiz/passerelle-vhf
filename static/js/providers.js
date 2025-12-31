@@ -42,18 +42,18 @@ async function loadProviders() {
                             </div>
                             <div style="margin-top: 0.5rem;">
                                 <strong>Message :</strong><br>
-                                <em>Bonjour Monsieur Misslin,<br><br>
-                                Je travaille sur un projet de passerelle VHF open-source permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
-                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur des canaux VHF dédiés, permettant ainsi aux pilotes de recevoir des bulletins à jour sans connexion internet.<br><br>
+                                Bonjour Monsieur MISSLIN,<br><br>
+                                J'installe une passerelle VHF permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
+                                Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur des canaux VHF dédiés, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
                                 Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
                                 Informations sur le projet :<br>
-                                - Projet open-source : https://github.com/Davidlouiz/passerelle-vhf<br>
+                                - Projet : https://github.com/Davidlouiz/passerelle-vhf<br>
                                 - Site/balise concerné : [à préciser]<br>
                                 - Localisation : [à préciser]<br>
                                 - Utilisation : diffusion VHF automatique locale<br><br>
                                 Pourriez-vous me communiquer une clé d'accès API pour cette installation ?<br><br>
                                 Je reste à votre disposition pour tout complément d'information.<br><br>
-                                Cordialement</em>
+                                Cordialement
                             </div>
                         </div>
                         
