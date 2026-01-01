@@ -632,11 +632,45 @@ class VHFRunner:
                 f"✅ TX {tx_record.tx_id[:12]}... envoyée avec succès pour {channel.name}"
             )
 
+            # ÉTAPE 5 : Recalculer next_tx_at
+            next_pending = (
+                db.query(TxHistory)
+                .filter(
+                    TxHistory.channel_id == channel.id,
+                    TxHistory.status == "PENDING",
+                )
+                .order_by(TxHistory.planned_at)
+                .first()
+            )
+            if next_pending:
+                channel.runtime.next_tx_at = next_pending.planned_at
+                logger.debug(
+                    f"Prochaine TX pour {channel.name}: {next_pending.planned_at}"
+                )
+            else:
+                channel.runtime.next_tx_at = None
+                logger.debug(f"Plus de TX PENDING pour {channel.name}")
+            db.commit()
+
         except MeasurementExpiredError as e:
             # Mesure périmée : annuler la TX
             logger.warning(f"TX annulée pour {channel.name} : {e}")
             tx_record.status = "ABORTED"
             tx_record.error_message = str(e)
+            
+            # Recalculer next_tx_at
+            next_pending = (
+                db.query(TxHistory)
+                .filter(
+                    TxHistory.channel_id == channel.id,
+                    TxHistory.status == "PENDING",
+                )
+                .order_by(TxHistory.planned_at)
+                .first()
+            )
+            channel.runtime.next_tx_at = (
+                next_pending.planned_at if next_pending else None
+            )
             db.commit()
 
         except Exception as e:
@@ -646,6 +680,20 @@ class VHFRunner:
             tx_record.status = "FAILED"
             tx_record.error_message = str(e)
             channel.runtime.last_error = str(e)
+            
+            # Recalculer next_tx_at
+            next_pending = (
+                db.query(TxHistory)
+                .filter(
+                    TxHistory.channel_id == channel.id,
+                    TxHistory.status == "PENDING",
+                )
+                .order_by(TxHistory.planned_at)
+                .first()
+            )
+            channel.runtime.next_tx_at = (
+                next_pending.planned_at if next_pending else None
+            )
             db.commit()
 
 
