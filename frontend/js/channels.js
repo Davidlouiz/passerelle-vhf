@@ -676,10 +676,22 @@ async function saveFFVLKeyFromModal(e) {
 
         if (response && response.ok) {
             statusDiv.innerHTML = '<div class="success-message">✓ Clé API validée et enregistrée avec succès</div>';
+            
+            // Recharger immédiatement les providers pour mettre à jour providersStatus
+            const providersResponse = await authenticatedFetch('/api/providers/');
+            if (providersResponse.ok) {
+                const providers = await providersResponse.json();
+                providersStatus = {};
+                providers.forEach(p => {
+                    providersStatus[p.provider_id] = p.is_configured;
+                });
+            }
+            
+            // Puis recharger la modale et les canaux
             setTimeout(() => {
                 loadSourcesModal();
                 loadChannels(); // Recharger les canaux pour mettre à jour les badges
-            }, 1000);
+            }, 800);
         } else {
             const error = response ? await response.json() : {};
             statusDiv.innerHTML = `<div class="error-message">❌ ${error.detail || 'Erreur inconnue'}</div>`;
@@ -703,6 +715,17 @@ async function removeFFVLKeyFromModal() {
         if (response && response.ok) {
             const result = await response.json();
             showNotification('Succès', result.message, 'success');
+            
+            // Recharger immédiatement les providers pour mettre à jour providersStatus
+            const providersResponse = await authenticatedFetch('/api/providers/');
+            if (providersResponse.ok) {
+                const providers = await providersResponse.json();
+                providersStatus = {};
+                providers.forEach(p => {
+                    providersStatus[p.provider_id] = p.is_configured;
+                });
+            }
+            
             loadSourcesModal(); // Recharger pour afficher le formulaire
             loadChannels(); // Recharger les canaux pour afficher les changements de statut
         } else {
@@ -720,11 +743,11 @@ window.toggleEmailTemplateModal = function () {
     const template = document.getElementById('emailTemplateModal');
     if (template) {
         template.style.display = template.style.display === 'none' ? 'block' : 'none';
-        
+
         // Ajouter l'event listener pour copier l'email au clic (une seule fois)
         const emailSpan = document.getElementById('ffvlEmail');
         if (emailSpan && !emailSpan.dataset.listenerAdded) {
-            emailSpan.addEventListener('click', function() {
+            emailSpan.addEventListener('click', function () {
                 const email = 'informatique@ffvl.fr';
                 navigator.clipboard.writeText(email).then(() => {
                     showNotification('Email copié', `${email} copié dans le presse-papier`, 'success');
