@@ -5,7 +5,8 @@ Radio VHF multi-canaux qui annonce vocalement les mesures météo. **Fail-safe c
 
 **Stack** : Python 3.10+ | FastAPI | SQLite | Piper TTS | GPIO PTT  
 **Déploiement** : Raspberry Pi (`/opt/vhf-balise/`) ou dev local (`./data/`)  
-**Architecture** : 2 processus - `uvicorn app.main:app` (API web) + `python -m app.runner` (scheduler TX)
+**Architecture** : 2 processus - `uvicorn app.main:app` (API web) + `python -m app.runner` (scheduler TX)  
+**⚠️ VERROU PID OBLIGATOIRE** : Runner utilise `data/runner.pid` pour empêcher instances multiples (fail-safe critique anti-doublons TX)
 
 ## Développement rapide
 
@@ -74,7 +75,10 @@ Un SEUL PTT pour tous canaux. Si N annonces dues simultanément : shuffle ordre 
 - **Lecture** : Les datetimes lus sont traités comme UTC naïfs (via `format_utc_datetime()` dans routers).
 - **Comparaisons** : Toujours comparer des UTC naïfs entre eux (voir `_update_channel_measurement()` dans runner.py).
 
-**Au démarrage runner** : marquer anciens PENDING (planned_at > 1h) en ABORTED (évite TX obsolètes si runner redémarre)
+**Au démarrage runner** : 
+1. **Verrou PID** : acquérir `data/runner.pid` via `acquire_pid_lock()` - refuse démarrage si autre runner actif
+2. Marquer anciens PENDING (planned_at > 1h) en ABORTED (évite TX obsolètes)  
+**Au shutdown runner** : libérer PID via `release_pid_lock()` (garanti par finally block)
 
 ### Providers météo ([app/providers/](app/providers/))
 Abstraction `WeatherProvider` + singleton `provider_manager`.

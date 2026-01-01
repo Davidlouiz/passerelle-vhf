@@ -7,6 +7,7 @@ Polling des providers, détection de nouvelles mesures, planification et exécut
 import asyncio
 import logging
 import sys
+import os
 from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Dict, Optional
@@ -30,6 +31,9 @@ from app.database import DATA_DIR
 LOG_DIR = DATA_DIR / "logs"
 LOG_DIR.mkdir(parents=True, exist_ok=True)
 
+# Fichier PID pour prévenir instances multiples
+PID_FILE = DATA_DIR / "runner.pid"
+
 # Configuration logging
 logging.basicConfig(
     level=logging.INFO,
@@ -40,6 +44,62 @@ logging.basicConfig(
     ],
 )
 logger = logging.getLogger(__name__)
+
+
+def acquire_pid_lock() -> bool:
+    """Acquérir le verrou PID.
+    
+    Returns:
+        True si le verrou a été acquis, False sinon.
+    """
+    if PID_FILE.exists():
+        # Lire le PID existant
+        try:
+            existing_pid = int(PID_FILE.read_text().strip())
+            # Vérifier si le processus existe encore
+            try:
+                os.kill(existing_pid, 0)  # Signal 0 = vérifier existence
+                logger.error(
+                    f"❌ Un autre runner tourne déjà (PID {existing_pid}). "
+                    f"Arrêtez-le avant de démarrer une nouvelle instance."
+                )
+                return False
+            except ProcessLookupError:
+                # Le processus n'existe plus, fichier PID obsolète
+                logger.warning(
+                    f"Fichier PID obsolète détecté (PID {existing_pid} n'existe plus). "
+                    "Nettoyage et acquisition du verrou."
+                )
+                PID_FILE.unlink()
+        except (ValueError, OSError) as e:
+            logger.warning(f"Fichier PID corrompu : {e}. Recréation.")
+            PID_FILE.unlink(missing_ok=True)
+    
+    # Créer le fichier PID
+    try:
+        PID_FILE.write_text(str(os.getpid()))
+        logger.info(f"✓ Verrou PID acquis : {PID_FILE} (PID {os.getpid()})")
+        return True
+    except OSError as e:
+        logger.error(f"❌ Impossible de créer le fichier PID : {e}")
+        return False
+
+
+def release_pid_lock():
+    """Libérer le verrou PID."""
+    try:
+        if PID_FILE.exists():
+            current_pid = int(PID_FILE.read_text().strip())
+            if current_pid == os.getpid():
+                PID_FILE.unlink()
+                logger.info("✓ Verrou PID libéré")
+            else:
+                logger.warning(
+                    f"Le fichier PID appartient à un autre processus ({current_pid}), "
+                    "pas de suppression."
+                )
+    except Exception as e:
+        logger.error(f"Erreur lors de la libération du verrou PID : {e}")
 
 
 class VHFRunner:
@@ -591,6 +651,11 @@ class VHFRunner:
 
 async def main():
     """Point d'entrée principal."""
+    # Acquérir le verrou PID avant toute chose
+    if not acquire_pid_lock():
+        logger.error("Impossible de démarrer : un autre runner est déjà actif.")
+        sys.exit(1)
+    
     runner = VHFRunner()
 
     try:
@@ -600,6 +665,7 @@ async def main():
     finally:
         if runner.ptt_controller:
             runner.ptt_controller.cleanup()
+        release_pid_lock()
 
 
 if __name__ == "__main__":
