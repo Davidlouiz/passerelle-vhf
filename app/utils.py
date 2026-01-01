@@ -31,7 +31,7 @@ def is_measurement_expired(measurement_at: datetime, period_seconds: int) -> boo
     if measurement_at.tzinfo is not None:
         # Convertir aware UTC → naïf UTC
         measurement_at = measurement_at.replace(tzinfo=None)
-    
+
     age_seconds = (datetime.utcnow() - measurement_at).total_seconds()
     return age_seconds > period_seconds
 

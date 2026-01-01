@@ -48,7 +48,7 @@ logger = logging.getLogger(__name__)
 
 def acquire_pid_lock() -> bool:
     """Acquérir le verrou PID.
-    
+
     Returns:
         True si le verrou a été acquis, False sinon.
     """
@@ -74,7 +74,7 @@ def acquire_pid_lock() -> bool:
         except (ValueError, OSError) as e:
             logger.warning(f"Fichier PID corrompu : {e}. Recréation.")
             PID_FILE.unlink(missing_ok=True)
-    
+
     # Créer le fichier PID
     try:
         PID_FILE.write_text(str(os.getpid()))
@@ -653,14 +653,16 @@ async def main():
     """Point d'entrée principal."""
     # Vérifier option --force pour forcer le démarrage
     force_start = "--force" in sys.argv
-    
+
     if force_start:
-        logger.warning("⚠️ Démarrage forcé avec --force : suppression du verrou PID existant")
+        logger.warning(
+            "⚠️ Démarrage forcé avec --force : suppression du verrou PID existant"
+        )
         if PID_FILE.exists():
             old_pid = PID_FILE.read_text().strip()
             PID_FILE.unlink()
             logger.warning(f"Ancien PID {old_pid} supprimé de force")
-    
+
     # Acquérir le verrou PID avant toute chose
     if not acquire_pid_lock():
         logger.error(
@@ -668,7 +670,7 @@ async def main():
             "Si vous êtes sûr qu'aucun runner ne tourne, utilisez : python -m app.runner --force"
         )
         sys.exit(1)
-    
+
     runner = VHFRunner()
 
     try:
