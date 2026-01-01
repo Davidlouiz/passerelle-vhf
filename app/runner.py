@@ -552,6 +552,13 @@ class VHFRunner:
             ):
                 raise MeasurementExpiredError("Mesure périmée juste avant transmission")
 
+            # ÉTAPE 3.5 : Marquer comme SENT AVANT transmission (évite race condition)
+            # Si la TX échoue, on la marquera FAILED dans le except
+            tx_record.status = "SENT"
+            tx_record.sent_at = datetime.utcnow()
+            channel.runtime.last_tx_at = datetime.utcnow()
+            db.commit()
+
             # ÉTAPE 4 : Transmission PTT
             logger.info(f"Début transmission pour {channel.name}")
             await self.transmission_service.transmit(
@@ -560,13 +567,6 @@ class VHFRunner:
                 tail_ms=settings.ptt_tail_ms,
                 timeout_seconds=settings.tx_timeout_seconds,
             )
-
-            # ÉTAPE 5 : Marquer SENT
-            tx_record.status = "SENT"
-            tx_record.sent_at = datetime.utcnow()
-            channel.runtime.last_tx_at = datetime.utcnow()
-
-            db.commit()
 
             logger.info(
                 f"✅ TX {tx_record.tx_id[:12]}... envoyée avec succès pour {channel.name}"
@@ -581,6 +581,7 @@ class VHFRunner:
 
         except Exception as e:
             # Toute autre erreur : marquer FAILED
+            # Note: Si on avait déjà marqué SENT avant transmission, on repasse en FAILED
             logger.error(f"❌ Erreur TX pour {channel.name}: {e}", exc_info=True)
             tx_record.status = "FAILED"
             tx_record.error_message = str(e)
