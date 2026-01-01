@@ -41,11 +41,13 @@
                                 </div>
                             </div>
                         </div>
-                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1rem;">
-                            <button id="runnerToggleBtn" class="btn btn-secondary" disabled>
+                        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-top: 1.5rem;">
+                            <button id="runnerToggleBtn" class="btn btn-secondary"
+                                style="max-width: 250px; justify-self: center;" disabled>
                                 Chargement...
                             </button>
-                            <button id="emissionToggleBtn" class="btn btn-secondary" disabled>
+                            <button id="emissionToggleBtn" class="btn btn-secondary"
+                                style="max-width: 250px; justify-self: center;" disabled>
                                 Chargement...
                             </button>
                         </div>
@@ -184,7 +186,8 @@
                             <ul class="help-list">
                                 <li><strong>Intervalle de polling :</strong> 60 secondes (équilibre entre fraîcheur des
                                     données et charge réseau)</li>
-                                <li><strong>Pause entre annonces :</strong> 10 secondes (permet de séparer clairement chaque
+                                <li><strong>Pause entre annonces :</strong> 10 secondes (permet de séparer clairement
+                                    chaque
                                     émission)
                                 </li>
                                 <li><strong>PTT lead :</strong> 500ms (standard pour la plupart des émetteurs VHF)</li>
@@ -194,7 +197,8 @@
                             <h4 class="help-subtitle">Mode développement</h4>
                             <p class="help-text">
                                 Pour tester sans matériel radio, laisser <strong>Pin GPIO PTT vide</strong>.
-                                Le système utilisera un contrôleur PTT mock qui simule les opérations sans activer de GPIO.
+                                Le système utilisera un contrôleur PTT mock qui simule les opérations sans activer de
+                                GPIO.
                             </p>
                         </div>
                     </div>
