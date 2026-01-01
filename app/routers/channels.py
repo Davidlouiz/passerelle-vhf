@@ -392,19 +392,11 @@ async def preview_channel(
     measurement_age = now - measurement.measurement_at
     measurement_age_minutes = int(measurement_age.total_seconds() / 60)
 
-    # Rendre le template avec la nouvelle signature
-    # Note: measurement_at sera utilisé par le renderer pour calculer l'âge
+    # Rendre le template (fonction centralisée pour cohérence avec vraie TX)
     try:
-        renderer = TemplateRenderer()
-        rendered_text = renderer.render(
-            template=channel.template_text,
-            station_name=channel.name,
-            wind_avg_kmh=measurement.wind_avg_kmh,
-            wind_max_kmh=measurement.wind_max_kmh,
-            wind_min_kmh=measurement.wind_min_kmh,
-            wind_direction_deg=measurement.wind_direction,
-            measurement_at=measurement.measurement_at,
-        )
+        from app.services.announcement import prepare_announcement_text
+
+        rendered_text = prepare_announcement_text(channel, measurement)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur rendu template: {str(e)}")
 

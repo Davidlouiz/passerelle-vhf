@@ -17,18 +17,29 @@
         <main class="main-content">
             <header class="page-header">
                 <h1>Gestion des canaux</h1>
-                <div class="header-actions">
-                    <button id="newChannelBtn" class="btn btn-primary">+ Nouveau canal</button>
-                </div>
             </header>
 
             <div class="content">
                 <div class="card">
                     <div class="card-header">
                         <h3>Canaux configurés</h3>
+                        <button id="newChannelBtn" class="btn btn-sm btn-primary">+ Nouveau canal</button>
                     </div>
                     <div class="card-body">
                         <div id="channelsList">
+                            <p class="text-muted">Chargement...</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Sources météo -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        <h3>Sources météo</h3>
+                        <button id="manageSourcesBtn" class="btn btn-sm btn-primary">Gérer les sources</button>
+                    </div>
+                    <div class="card-body">
+                        <div id="providers-summary">
                             <p class="text-muted">Chargement...</p>
                         </div>
                     </div>
@@ -169,6 +180,49 @@
                 </div>
             </div>
         </main>
+
+        <!-- Modal de gestion des sources -->
+        <div id="sourcesModal" class="modal">
+            <div class="modal-content" style="max-width: 700px;">
+                <div class="modal-header">
+                    <h2>Configuration des sources</h2>
+                    <button class="btn-close" id="closeSourcesModal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <!-- FFVL -->
+                    <div class="card" style="margin-bottom: 20px;">
+                        <div class="card-header">
+                            <h3>FFVL (Fédération Française de Vol Libre)</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">L'accès aux données des balises météo de la FFVL nécessite une clé
+                                d'API,
+                                délivrée sur simple demande auprès de la FFVL.</p>
+                            <div id="ffvl-container-modal">
+                                <p class="text-muted">Chargement...</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- OpenWindMap -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>OpenWindMap (API Pioupiou)</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="text-muted">Aucune authentification requise pour cette source.</p>
+                            <div class="success-message">
+                                ✓ Source opérationnelle et prête à l'emploi
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button id="closeSourcesModalBtn" class="btn btn-secondary">Fermer</button>
+                </div>
+            </div>
+        </div>
+
     </div>
 
     <script src="/static/js/common.js"></script>

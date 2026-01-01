@@ -38,10 +38,6 @@ function updateDashboard(data) {
     document.getElementById('active-channels').textContent =
         `${data.active_channels} / ${data.total_channels}`;
 
-    // Intervalle de polling
-    document.getElementById('poll-interval').textContent =
-        data.poll_interval_seconds ? `${data.poll_interval_seconds}s` : '—';
-
     const statusBadge = document.getElementById('system-status');
     if (data.master_enabled) {
         statusBadge.textContent = 'Émission activée';

@@ -293,19 +293,10 @@ class VHFRunner:
         for offset in offsets:
             planned_at = measurement.measurement_at + timedelta(seconds=offset)
 
-            # Rendre le texte pour calculer tx_id
-            from app.services.template import TemplateRenderer
+            # Rendre le texte pour calculer tx_id (fonction centralisée)
+            from app.services.announcement import prepare_announcement_text
 
-            renderer = TemplateRenderer()
-            rendered_text = renderer.render(
-                channel.template_text,
-                station_name=channel.name,
-                wind_avg_kmh=measurement.wind_avg_kmh,
-                wind_max_kmh=measurement.wind_max_kmh,
-                wind_min_kmh=measurement.wind_min_kmh or 0,
-                wind_direction_deg=measurement.wind_direction,
-                measurement_at=measurement.measurement_at,
-            )
+            rendered_text = prepare_announcement_text(channel, measurement)
 
             # Calculer tx_id (idempotence)
             tx_id = compute_hash(

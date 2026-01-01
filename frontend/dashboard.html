@@ -26,6 +26,7 @@
                 <div class="card">
                     <div class="card-header">
                         <h3>Statut système</h3>
+                        <a href="/static/settings.html" class="btn btn-sm btn-primary">Configurer</a>
                     </div>
                     <div class="card-body">
                         <div class="stats-grid">
@@ -41,10 +42,19 @@
                                 <div class="stat-label">Canaux actifs</div>
                                 <div id="active-channels" class="stat-value">—</div>
                             </div>
-                            <div class="stat-item">
-                                <div class="stat-label">Intervalle polling</div>
-                                <div id="poll-interval" class="stat-value">—</div>
-                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Canaux avec stats -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3>Activité par canal</h3>
+                        <a href="/static/channels.html" class="btn btn-sm btn-primary">Gérer les canaux</a>
+                    </div>
+                    <div class="card-body">
+                        <div id="channels-list">
+                            <p class="text-muted">Chargement...</p>
                         </div>
                     </div>
                 </div>
@@ -72,19 +82,6 @@
                                 <div class="stat-value" id="tx-aborted">—</div>
                                 <div class="stat-label">Annulées</div>
                             </div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Canaux avec stats -->
-                <div class="card">
-                    <div class="card-header">
-                        <h3>Activité par canal</h3>
-                        <a href="/static/channels.html" class="btn btn-sm btn-primary">Gérer</a>
-                    </div>
-                    <div class="card-body">
-                        <div id="channels-list">
-                            <p class="text-muted">Chargement...</p>
                         </div>
                     </div>
                 </div>

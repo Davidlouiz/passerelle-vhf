@@ -142,7 +142,11 @@ class TemplateRenderer:
         # Ajouter l'ancienneté si disponible
         if measurement_at is not None:
             age_seconds = (datetime.utcnow() - measurement_at).total_seconds()
-            context["measurement_age_minutes"] = round_to_int(age_seconds / 60)
+            age_minutes = round_to_int(age_seconds / 60)
+            # Remplacer "1" par "une" pour meilleure prononciation
+            context["measurement_age_minutes"] = (
+                "une" if age_minutes == 1 else str(age_minutes)
+            )
 
         # Rendre le template
         result = template
