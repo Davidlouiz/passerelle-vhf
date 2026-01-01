@@ -7,6 +7,7 @@ Gère les variables {station_name}, {wind_avg_kmh}, {wind_direction_cardinal}, e
 import re
 from typing import Dict, Any, Optional
 from datetime import datetime
+import pytz
 
 from app.utils import round_to_int
 
@@ -141,7 +142,7 @@ class TemplateRenderer:
 
         # Ajouter l'ancienneté si disponible
         if measurement_at is not None:
-            age_seconds = (datetime.utcnow() - measurement_at).total_seconds()
+            age_seconds = (datetime.now(pytz.UTC) - measurement_at).total_seconds()
             age_minutes = round_to_int(age_seconds / 60)
             # Remplacer "1" par "une" pour meilleure prononciation
             context["measurement_age_minutes"] = (

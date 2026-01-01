@@ -6,6 +6,7 @@ from sqlalchemy import desc
 from datetime import datetime, timedelta
 import subprocess
 import os
+import pytz
 
 from app.database import get_db
 from app.models import SystemSettings, Channel, ChannelRuntime, TxHistory
@@ -15,18 +16,25 @@ router = APIRouter()
 
 def format_utc_datetime(dt) -> str:
     """
-    Convertit un datetime naïf (assumé UTC) en ISO string avec timezone.
+    Convertit un datetime (naïf ou aware) en ISO string avec timezone Z.
 
     Args:
-        dt: datetime naïf en UTC ou None
+        dt: datetime en UTC (naïf ou aware) ou None
 
     Returns:
         String ISO 8601 avec 'Z' ou None
     """
     if dt is None:
         return None
-    # Ajouter 'Z' pour indiquer UTC
-    return dt.isoformat() + "Z"
+
+    # SQLite retourne des datetimes naïfs même avec timezone=True
+    # Il faut forcer la timezone UTC
+    if dt.tzinfo is None:
+        dt = pytz.UTC.localize(dt)
+
+    # Convertir en ISO et remplacer +00:00 par Z
+    iso_str = dt.isoformat()
+    return iso_str.replace("+00:00", "Z")
 
 
 def check_runner_status() -> str:

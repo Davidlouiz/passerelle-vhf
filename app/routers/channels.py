@@ -37,6 +37,7 @@ class ChannelUpdate(BaseModel):
     """Mise à jour d'un canal."""
 
     name: Optional[str] = None
+    station_visual_url: Optional[str] = None
     frequency_mhz: Optional[float] = None
     template_text: Optional[str] = None
     voice_id: Optional[str] = None
@@ -189,6 +190,33 @@ def update_channel(
 
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
+
+    # Si l'URL de la station change, résoudre la nouvelle station
+    if data.station_visual_url is not None:
+        from app.providers.ffvl import FFVLProvider
+        from app.providers.openwindmap import OpenWindMapProvider
+
+        url = data.station_visual_url.strip()
+
+        try:
+            if "balisemeteo.com" in url or "ffvl" in url.lower():
+                provider = FFVLProvider()
+                station_info = provider.resolve_station_from_url(url)
+                channel.provider_id = station_info.provider_id
+                channel.station_id = station_info.station_id
+                channel.station_visual_url_cache = url
+            elif "openwindmap.org" in url or "pioupiou" in url.lower():
+                provider = OpenWindMapProvider()
+                station_info = provider.resolve_station_from_url(url)
+                channel.provider_id = station_info.provider_id
+                channel.station_id = station_info.station_id
+                channel.station_visual_url_cache = url
+            else:
+                raise ValueError("URL non reconnue")
+        except Exception as e:
+            raise HTTPException(
+                status_code=400, detail=f"Impossible de résoudre la station: {str(e)}"
+            )
 
     # Mettre à jour les champs fournis
     if data.name is not None:
@@ -376,21 +404,23 @@ async def preview_channel(
         .first()
     )
 
-    # Récupérer le provider
-    if channel.provider_id == "ffvl":
-        from app.providers.ffvl import FFVLProvider
+    # Récupérer le provider via le manager
+    from app.providers.manager import provider_manager
 
-        if not creds or not creds.credentials_json.get("api_key"):
-            raise HTTPException(status_code=400, detail="Clé API FFVL manquante")
-        provider = FFVLProvider(api_key=creds.credentials_json["api_key"])
-    elif channel.provider_id == "openwindmap":
-        from app.providers.openwindmap import OpenWindMapProvider
+    # Charger les credentials depuis la DB
+    provider_manager.load_credentials(db)
 
-        provider = OpenWindMapProvider()
-    else:
+    provider = provider_manager.get_provider(channel.provider_id)
+    if not provider:
         raise HTTPException(
             status_code=400, detail=f"Provider inconnu: {channel.provider_id}"
         )
+
+    # Vérifier que les credentials sont configurées pour FFVL
+    if channel.provider_id == "ffvl" and (
+        not creds or not creds.credentials_json.get("api_key")
+    ):
+        raise HTTPException(status_code=400, detail="Clé API FFVL manquante")
 
     # Récupérer la dernière mesure
     try:
@@ -404,7 +434,9 @@ async def preview_channel(
         raise HTTPException(status_code=404, detail="Aucune mesure disponible")
 
     # Calculer l'âge de la mesure pour l'affichage
-    now = datetime.datetime.utcnow()  # Sans timezone pour cohérence
+    import pytz
+
+    now = datetime.datetime.now(pytz.UTC)  # Timezone-aware UTC
     measurement_age = now - measurement.measurement_at
     measurement_age_minutes = int(measurement_age.total_seconds() / 60)
 
@@ -440,9 +472,9 @@ async def preview_channel(
             "measurement": {
                 "wind_avg_kmh": measurement.wind_avg_kmh,
                 "wind_max_kmh": measurement.wind_max_kmh,
-                "measurement_at": measurement.measurement_at.isoformat() + "Z"
-                if not measurement.measurement_at.isoformat().endswith("Z")
-                else measurement.measurement_at.isoformat(),
+                "measurement_at": measurement.measurement_at.isoformat().replace(
+                    "+00:00", "Z"
+                ),
                 "age_minutes": measurement_age_minutes,
             },
             "was_cached": was_cached,

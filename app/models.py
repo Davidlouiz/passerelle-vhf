@@ -107,12 +107,12 @@ class ChannelRuntime(Base):
     channel_id = Column(
         Integer, ForeignKey("channels.id", ondelete="CASCADE"), primary_key=True
     )
-    last_measurement_at = Column(DateTime, nullable=True)
+    last_measurement_at = Column(DateTime(timezone=True), nullable=True)
     last_measurement_hash = Column(
         String(64), nullable=True
     )  # Hash pour détecter changements
-    last_tx_at = Column(DateTime, nullable=True)
-    next_tx_at = Column(DateTime, nullable=True)
+    last_tx_at = Column(DateTime(timezone=True), nullable=True)
+    next_tx_at = Column(DateTime(timezone=True), nullable=True)
     last_error = Column(Text, nullable=True)
 
     # Relation

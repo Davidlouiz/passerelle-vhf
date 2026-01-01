@@ -290,13 +290,13 @@ async def test_measurement(
         if not measurement:
             raise HTTPException(
                 status_code=404,
-                detail=f"Aucune mesure disponible pour la station {data.station_id}",
+                detail=f"Station {data.station_id} : Aucune mesure disponible. La station n'existe peut-être pas ou n'a pas de données récentes.",
             )
 
         return MeasurementResponse(
-            measurement_at=measurement.measurement_at.isoformat() + "Z"
-            if not measurement.measurement_at.isoformat().endswith("Z")
-            else measurement.measurement_at.isoformat(),
+            measurement_at=measurement.measurement_at.isoformat().replace(
+                "+00:00", "Z"
+            ),
             wind_avg_kmh=measurement.wind_avg_kmh,
             wind_max_kmh=measurement.wind_max_kmh,
             wind_min_kmh=measurement.wind_min_kmh,

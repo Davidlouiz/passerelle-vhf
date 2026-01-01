@@ -9,6 +9,7 @@ from datetime import datetime
 from typing import Optional, Dict, List
 from urllib.parse import urlparse, parse_qs
 import httpx
+import pytz
 
 from app.providers import WeatherProvider, Measurement, StationInfo
 from app.exceptions import ValidationError, ProviderError
@@ -144,6 +145,10 @@ class FFVLProvider(WeatherProvider):
                 response.raise_for_status()
                 data = response.json()
 
+                # Si pas de données, retourner None (station sans mesures récentes)
+                if not isinstance(data, list) or len(data) == 0:
+                    return None
+
                 return self._parse_measurement(data, station_id)
 
         except httpx.HTTPError as e:
@@ -202,15 +207,20 @@ class FFVLProvider(WeatherProvider):
             if wind_avg is None or wind_max is None:
                 return None
 
-            # Convertir la date (format: "YYYY-MM-DD HH:MM:SS")
+            # Convertir la date (format: "YYYY-MM-DD HH:MM:SS" en heure locale française)
             date_str = last_measure.get("date")
             if date_str:
                 try:
-                    measurement_at = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+                    # Parser comme datetime naïf puis localiser en Europe/Paris
+                    dt_naive = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+                    paris_tz = pytz.timezone("Europe/Paris")
+                    dt_paris = paris_tz.localize(dt_naive)
+                    # Convertir en UTC
+                    measurement_at = dt_paris.astimezone(pytz.UTC)
                 except ValueError:
-                    measurement_at = datetime.utcnow()
+                    measurement_at = datetime.now(pytz.UTC)
             else:
-                measurement_at = datetime.utcnow()
+                measurement_at = datetime.now(pytz.UTC)
 
             # Convertir les vitesses en float (peuvent être des strings)
             return Measurement(

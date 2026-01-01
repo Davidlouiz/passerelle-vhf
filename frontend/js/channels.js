@@ -58,7 +58,7 @@ function displayChannels(channels) {
         if (ch.is_enabled) {
             statusBadge = '<span class="badge badge-success">Activé</span>';
         } else if (!canBeEnabled) {
-            statusBadge = '<span class="badge badge-warning" title="Source non configurée">⚠️ Source manquante</span>';
+            statusBadge = '<span class="badge badge-warning" title="Source non configurée">⚠️ Source non configurée</span>';
         } else {
             statusBadge = '<span class="badge badge-danger">Désactivé</span>';
         }
@@ -676,7 +676,7 @@ async function saveFFVLKeyFromModal(e) {
 
         if (response && response.ok) {
             statusDiv.innerHTML = '<div class="success-message">✓ Clé API validée et enregistrée avec succès</div>';
-            
+
             // Recharger immédiatement les providers pour mettre à jour providersStatus
             const providersResponse = await authenticatedFetch('/api/providers/');
             if (providersResponse.ok) {
@@ -686,7 +686,7 @@ async function saveFFVLKeyFromModal(e) {
                     providersStatus[p.provider_id] = p.is_configured;
                 });
             }
-            
+
             // Puis recharger la modale et les canaux
             setTimeout(() => {
                 loadSourcesModal();
@@ -715,7 +715,7 @@ async function removeFFVLKeyFromModal() {
         if (response && response.ok) {
             const result = await response.json();
             showNotification('Succès', result.message, 'success');
-            
+
             // Recharger immédiatement les providers pour mettre à jour providersStatus
             const providersResponse = await authenticatedFetch('/api/providers/');
             if (providersResponse.ok) {
@@ -725,7 +725,7 @@ async function removeFFVLKeyFromModal() {
                     providersStatus[p.provider_id] = p.is_configured;
                 });
             }
-            
+
             loadSourcesModal(); // Recharger pour afficher le formulaire
             loadChannels(); // Recharger les canaux pour afficher les changements de statut
         } else {

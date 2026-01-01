@@ -9,6 +9,7 @@ from typing import Optional, Dict, List
 from urllib.parse import urlparse
 from datetime import datetime
 import httpx
+import pytz
 
 from app.providers import WeatherProvider, Measurement, StationInfo
 from app.exceptions import ValidationError, ProviderError
@@ -202,13 +203,12 @@ class OpenWindMapProvider(WeatherProvider):
                 data.get("date") or measurements.get("date") or data.get("measured_at")
             )
             if date_str:
-                # Gérer différents formats ISO - convertir en naive UTC
+                # L'API Pioupiou retourne des dates ISO UTC avec Z (ex: "2024-01-15T14:30:00Z")
+                # Convertir en datetime timezone-aware UTC
                 dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-                measurement_at = dt.replace(
-                    tzinfo=None
-                )  # Retirer la timezone pour cohérence
+                measurement_at = dt.astimezone(pytz.UTC)
             else:
-                measurement_at = datetime.utcnow()
+                measurement_at = datetime.now(pytz.UTC)
 
             return Measurement(
                 measurement_at=measurement_at,
