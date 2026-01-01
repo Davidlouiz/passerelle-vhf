@@ -61,8 +61,13 @@ def get_system_settings(
             tx_timeout_seconds=30,
         )
         db.add(settings)
-        db.commit()
-        db.refresh(settings)
+        try:
+            db.commit()
+            db.refresh(settings)
+        except Exception:
+            # Race condition: un autre thread a déjà créé l'entrée
+            db.rollback()
+            settings = db.query(SystemSettings).filter_by(id=1).first()
 
     return {
         "id": settings.id,

@@ -16,10 +16,9 @@ document.addEventListener('DOMContentLoaded', () => {
     document.getElementById('runnerToggleBtn').addEventListener('click', toggleRunner);
     document.getElementById('emissionToggleBtn').addEventListener('click', toggleEmission);
 
-    // Rafraîchir les statuts toutes les 5 secondes
+    // Rafraîchir seulement le statut du runner toutes les 5 secondes
     setInterval(() => {
         loadRunnerStatus();
-        loadSettings();
     }, 5000);
 });
 
@@ -245,13 +244,13 @@ async function saveSettings(event) {
 
         currentSettings = await response.json();
         displaySettings(currentSettings);
-        showSuccess('Paramètres sauvegardés avec succès');
+        showLoading(false);  // Restaurer d'abord l'état normal
+        showSaveSuccess();   // Puis afficher le feedback de succès
 
     } catch (error) {
         console.error('Erreur:', error);
-        showError(error.message);
-    } finally {
         showLoading(false);
+        showError(error.message);
     }
 }
 
@@ -289,4 +288,21 @@ function showLoading(show) {
         submitBtn.disabled = false;
         submitBtn.textContent = 'Enregistrer les paramètres';
     }
+}
+
+// Afficher le feedback de sauvegarde réussie sur le bouton
+function showSaveSuccess() {
+    const submitBtn = document.querySelector('button[type="submit"]');
+    const originalText = submitBtn.textContent;
+    const originalClass = submitBtn.className;
+
+    submitBtn.className = 'btn btn-success';
+    submitBtn.textContent = '✓ Paramètres enregistrés';
+    submitBtn.disabled = true;
+
+    setTimeout(() => {
+        submitBtn.className = originalClass;
+        submitBtn.textContent = originalText;
+        submitBtn.disabled = false;
+    }, 2000);
 }
