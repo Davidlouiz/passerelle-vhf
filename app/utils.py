@@ -21,12 +21,17 @@ def is_measurement_expired(measurement_at: datetime, period_seconds: int) -> boo
     Vérifie si une mesure est périmée.
 
     Args:
-        measurement_at: Timestamp de la mesure
+        measurement_at: Timestamp de la mesure (naïf UTC ou aware UTC)
         period_seconds: Période de validité en secondes
 
     Returns:
         True si périmée, False sinon
     """
+    # Normaliser en UTC naïf pour comparaison avec utcnow()
+    if measurement_at.tzinfo is not None:
+        # Convertir aware UTC → naïf UTC
+        measurement_at = measurement_at.replace(tzinfo=None)
+    
     age_seconds = (datetime.utcnow() - measurement_at).total_seconds()
     return age_seconds > period_seconds
 

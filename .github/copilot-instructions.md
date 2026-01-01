@@ -16,7 +16,6 @@ uvicorn app.main:app --reload --host 127.0.0.1 --port 8000  # Terminal 1
 python -m app.runner                                         # Terminal 2
 pytest tests/ -v            # Tests (fail-safe = critique, inclut tests async)
 pytest tests/ -v --cov      # Tests avec couverture de code
-cp -r frontend/* static/    # Copie frontend → static après modif HTML/CSS/JS
 ```
 
 **DB locale** : auto-créée dans `./data/vhf-balise.db` (VHF_DATA_DIR non défini)  
@@ -68,16 +67,33 @@ Un SEUL PTT pour tous canaux. Si N annonces dues simultanément : shuffle ordre 
 - `provider_credentials` : clés API par provider (ex: ffvl_key)
 - `audio_cache` : cache TTS (engine_id, voice_id, text_hash) → chemin fichier WAV
 
+**⚠️ Timezone critique** : 
+- **SQLite limitation** : SQLite ne supporte pas les timezones natives. Même avec `DateTime(timezone=True)`, les datetimes sont stockés/lus comme naïfs.
+- **Solution** : Tous les datetimes sont **convertis en UTC puis stockés sans timezone** (UTC naïf) via `.replace(tzinfo=None)`.
+- **Règle absolue** : Toute date écrite en base DOIT être `datetime.utcnow()` ou `dt.astimezone(pytz.UTC).replace(tzinfo=None)`.
+- **Lecture** : Les datetimes lus sont traités comme UTC naïfs (via `format_utc_datetime()` dans routers).
+- **Comparaisons** : Toujours comparer des UTC naïfs entre eux (voir `_update_channel_measurement()` dans runner.py).
+
 **Au démarrage runner** : marquer anciens PENDING (planned_at > 1h) en ABORTED (évite TX obsolètes si runner redémarre)
 
 ### Providers météo ([app/providers/](app/providers/))
 Abstraction `WeatherProvider` + singleton `provider_manager`.
 
-**FFVL** ([ffvl.py](app/providers/ffvl.py)) : Requiert `ffvl_key` dans credentials, ajouter `&key={ffvl_key}` à toutes URLs API  
-**OpenWindMap** ([openwindmap.py](app/providers/openwindmap.py)) : Aucune auth, fetch groupé `/v1/live/all` optimisé
+**FFVL** ([ffvl.py](app/providers/ffvl.py)) :  
+- Requiert `ffvl_key` dans credentials (via `api_key`), ajouter `&key={api_key}` à toutes URLs API  
+- **Timezone API** : dates retournées en heure locale Paris (Europe/Paris) - TOUJOURS convertir en UTC avec pytz :
+  ```python
+  dt_naive = datetime.strptime(date_str, "%Y-%m-%d %H:%M:%S")
+  paris_tz = pytz.timezone("Europe/Paris")
+  dt_paris = paris_tz.localize(dt_naive)
+  measurement_at = dt_paris.astimezone(pytz.UTC)  # ← Obligatoire !
+  ```
+- Validation clé : endpoint `/list` retourne JSON si valide, HTML si invalide
 
-**Normalisation obligatoire** : Tous providers retournent `Measurement(measurement_at: datetime, wind_avg_kmh, wind_max_kmh, wind_min_kmh)` - dates UTC timezone-aware.  
-**Pattern async** : Toutes requêtes HTTP via `async def fetch_measurement()` - utiliser `await` dans runner.
+**OpenWindMap** ([openwindmap.py](app/providers/openwindmap.py)) : Aucune auth, fetch groupé `/v1/live/all` optimisé, dates déjà UTC
+
+**Normalisation obligatoire** : Tous providers retournent `Measurement(measurement_at: datetime, wind_avg_kmh, wind_max_kmh, wind_min_kmh)` - dates UTC timezone-aware obligatoires  
+**Pattern async** : Toutes requêtes HTTP via `async def fetch_measurement()` - utiliser `await` dans runner
 
 ### TTS cache-first ([app/tts/](app/tts/))
 **Moteur** : Piper ([piper_engine.py](app/tts/piper_engine.py)) - 6 voix FR dans `data/tts_models/*.onnx`  
@@ -116,11 +132,11 @@ Variables : `{station_name}`, `{wind_avg_kmh}`, `{wind_max_kmh}`, `{wind_directi
 **Prononciation TTS** : "Este" au lieu de "Est" (liaison phonétique), "Oueste" au lieu de "Ouest"
 
 ### Frontend statique
-Fichiers dans `static/` (copie de `frontend/`) servis par FastAPI `StaticFiles`. Pas de framework JS - vanilla uniquement.
+Fichiers dans `frontend/` servis directement par FastAPI (`app.mount("/static", StaticFiles(directory="frontend"))`). Pas de framework JS - vanilla uniquement.
 
 **Auth JWT** : Token stocké dans `localStorage`, envoyé via header `Authorization: Bearer <token>`  
 **Helper fetch** : Utiliser `authenticatedFetch(url, options)` (dans [common.js](frontend/js/common.js)) au lieu de `fetch()` - gère auto header + redirect 401  
-**Workflow modif frontend** : Éditer `frontend/*` → copier vers `static/` (`cp -r frontend/* static/`) → reload navigateur
+**Workflow modif frontend** : Éditer `frontend/*` directement → reload navigateur (pas de copie vers `static/` nécessaire)
 
 ## Authentification ([app/auth.py](app/auth.py))
 

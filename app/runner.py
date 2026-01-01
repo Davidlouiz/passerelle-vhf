@@ -242,15 +242,24 @@ class VHFRunner:
             db.add(runtime)
 
         # Vérifier si c'est une nouvelle mesure
+        # IMPORTANT: SQLite ne supporte pas les timezones, donc on stocke en UTC naïf
+        # et on compare avec des UTC naïfs également
+        measurement_utc_naive = (
+            measurement.measurement_at.replace(tzinfo=None)
+            if measurement.measurement_at.tzinfo
+            else measurement.measurement_at
+        )
+        last_measurement_utc_naive = runtime.last_measurement_at
+
         if (
-            runtime.last_measurement_at is None
-            or measurement.measurement_at > runtime.last_measurement_at
+            last_measurement_utc_naive is None
+            or measurement_utc_naive > last_measurement_utc_naive
         ):
             logger.info(
-                f"Nouvelle mesure pour canal {channel.name}: {measurement.measurement_at}"
+                f"Nouvelle mesure pour canal {channel.name}: {measurement_utc_naive} UTC"
             )
 
-            runtime.last_measurement_at = measurement.measurement_at
+            runtime.last_measurement_at = measurement_utc_naive
             runtime.last_error = None
 
             # Planifier les TX
@@ -290,8 +299,15 @@ class VHFRunner:
         offsets = json.loads(channel.offsets_seconds_json or "[0]")
         created_count = 0
 
+        # Utiliser le même UTC naïf que celui stocké dans runtime
+        measurement_utc_naive = (
+            measurement.measurement_at.replace(tzinfo=None)
+            if measurement.measurement_at.tzinfo
+            else measurement.measurement_at
+        )
+
         for offset in offsets:
-            planned_at = measurement.measurement_at + timedelta(seconds=offset)
+            planned_at = measurement_utc_naive + timedelta(seconds=offset)
 
             # Rendre le texte pour calculer tx_id (fonction centralisée)
             from app.services.announcement import prepare_announcement_text
@@ -303,7 +319,7 @@ class VHFRunner:
                 channel.id,
                 channel.provider_id,
                 channel.station_id,
-                measurement.measurement_at.isoformat(),
+                measurement_utc_naive.isoformat(),
                 rendered_text,
                 channel.engine_id,
                 channel.voice_id,
@@ -324,7 +340,7 @@ class VHFRunner:
                 mode="SCHEDULED",
                 status="PENDING",
                 station_id=str(channel.station_id),
-                measurement_at=measurement.measurement_at,
+                measurement_at=measurement_utc_naive,
                 offset_seconds=offset,
                 planned_at=planned_at,
                 rendered_text=rendered_text,

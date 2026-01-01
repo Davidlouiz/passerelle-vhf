@@ -23,12 +23,15 @@ def format_utc_datetime(dt) -> str:
 
     Returns:
         String ISO 8601 avec 'Z' ou None
+
+    Note:
+        SQLite stocke les datetimes en UTC naïf (sans timezone).
+        On les traite comme UTC pour l'affichage.
     """
     if dt is None:
         return None
 
-    # SQLite retourne des datetimes naïfs même avec timezone=True
-    # Il faut forcer la timezone UTC
+    # SQLite retourne des datetimes naïfs - on suppose qu'ils sont en UTC
     if dt.tzinfo is None:
         dt = pytz.UTC.localize(dt)
 
