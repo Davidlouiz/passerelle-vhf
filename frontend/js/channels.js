@@ -608,14 +608,14 @@ async function loadSourcesModal() {
                             </button>
                             <div id="emailTemplateModal" style="display: none; background-color: #e8f4f8; border-left: 4px solid #0066cc; padding: 1rem; font-size: 0.9rem;">
                                 <div style="margin-top: 0.5rem;">
-                                    <strong>Destinataire :</strong> Gilles MISSLIN (FFVL)
+                                    <strong>Destinataire :</strong> <span id="ffvlEmail" style="cursor: pointer;" title="Cliquer pour copier">informatique<span style="display:inline;">@</span>ffvl<span style="display:inline;">.</span>fr</span>
                                 </div>
                                 <div style="margin-top: 0.5rem;">
                                     <strong>Objet :</strong> Demande de clé API - Installation passerelle VHF météo automatique
                                 </div>
                                 <div style="margin-top: 0.5rem;">
                                     <strong>Message :</strong><br>
-                                    Bonjour Monsieur MISSLIN,<br><br>
+                                    Bonjour,<br><br>
                                     J'installe une passerelle VHF permettant de diffuser automatiquement et vocalement les informations météorologiques issues de vos balises.<br><br>
                                     Le système interroge périodiquement les données météo (vent moyen, rafales, direction) et les annonce sur le canal VHF dédié, permettant ainsi aux pilotes de recevoir des bulletins à jour.<br><br>
                                     Pour accéder aux données de vos stations via balisemeteo.com, j'ai besoin d'une clé API.<br><br>
@@ -720,6 +720,21 @@ window.toggleEmailTemplateModal = function () {
     const template = document.getElementById('emailTemplateModal');
     if (template) {
         template.style.display = template.style.display === 'none' ? 'block' : 'none';
+        
+        // Ajouter l'event listener pour copier l'email au clic (une seule fois)
+        const emailSpan = document.getElementById('ffvlEmail');
+        if (emailSpan && !emailSpan.dataset.listenerAdded) {
+            emailSpan.addEventListener('click', function() {
+                const email = 'informatique@ffvl.fr';
+                navigator.clipboard.writeText(email).then(() => {
+                    showNotification('Email copié', `${email} copié dans le presse-papier`, 'success');
+                }).catch(() => {
+                    // Fallback si le clipboard API n'est pas disponible
+                    showNotification('Email', email, 'info');
+                });
+            });
+            emailSpan.dataset.listenerAdded = 'true';
+        }
     }
 };
 
