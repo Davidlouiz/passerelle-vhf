@@ -11,17 +11,19 @@ Radio VHF multi-canaux qui annonce vocalement les mesures météo. **Fail-safe c
 
 ```bash
 ./dev.sh                    # Affiche commandes dev + init DB si besoin
-source venv/bin/activate
+source venv/bin/activate    # ⚠️ OBLIGATOIRE avant toute commande Python
 uvicorn app.main:app --reload --host 127.0.0.1 --port 8000  # Terminal 1
 python -m app.runner                                         # Terminal 2
 pytest tests/ -v            # Tests (fail-safe = critique, inclut tests async)
+pytest tests/ -v --cov      # Tests avec couverture de code
 cp -r frontend/* static/    # Copie frontend → static après modif HTML/CSS/JS
 ```
 
 **DB locale** : auto-créée dans `./data/vhf-balise.db` (VHF_DATA_DIR non défini)  
 **DB prod** : `export VHF_DATA_DIR=/opt/vhf-balise/data` (voir [app/database.py](app/database.py#L18-L22))  
 **Init manuelle DB** : `python -m app.init_db` (si `./dev.sh` ne suffit pas)  
-**Venv** : Toujours activer avec `source venv/bin/activate` avant de lancer commandes Python
+**⚠️ Venv OBLIGATOIRE** : Toujours `source venv/bin/activate` avant toute commande Python (pytest, runner, etc.)  
+**Test complet** : Les 2 processus doivent tourner ensemble en dev pour tester l'architecture complète
 
 ## ⚠️ Contrainte absolue : Fail-Safe
 
@@ -147,3 +149,17 @@ Fichiers dans `static/` (copie de `frontend/`) servis par FastAPI `StaticFiles`.
 **Logs web** : `journalctl -u vhf-balise-web -f` (prod) ou stdout terminal dev  
 **SQL debug** : Mettre `echo=True` dans [app/database.py](app/database.py#L30) `create_engine()`  
 **Audio dev** : Cache TTS dans `./data/audio_cache/` - supprimer pour forcer régénération test
+
+## Production (Raspberry Pi)
+
+**Services systemd** :
+```bash
+sudo systemctl status vhf-balise-web      # État API
+sudo systemctl status vhf-balise-runner   # État runner
+sudo systemctl restart vhf-balise-web     # Redémarrer API
+sudo systemctl restart vhf-balise-runner  # Redémarrer runner
+sudo journalctl -u vhf-balise-runner -f   # Logs temps réel
+```
+
+**Installation** : `sudo ./install.sh` (déploie vers `/opt/vhf-balise/`, crée user `vhf-balise`, installe services)  
+**Compte par défaut** : `admin`/`admin` → http://raspberry-ip:8000 (CHANGER le mot de passe immédiatement)

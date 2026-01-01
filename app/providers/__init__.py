@@ -29,24 +29,84 @@ class Measurement:
             "wind_min_kmh": self.wind_min_kmh,
             "wind_direction": self.wind_direction,
         }
-    
+
     @property
     def wind_direction_cardinal(self) -> str:
-        """Direction cardinale (N, NE, E, SE, S, SO, O, NO)."""
+        """Direction cardinale (16 directions) - version affichage."""
         if self.wind_direction is None:
             return "N/A"
-        directions = ["N", "NE", "E", "SE", "S", "SO", "O", "NO"]
-        index = round(self.wind_direction / 45) % 8
+        directions = [
+            "N",
+            "NNE",
+            "NE",
+            "ENE",
+            "E",
+            "ESE",
+            "SE",
+            "SSE",
+            "S",
+            "SSO",
+            "SO",
+            "OSO",
+            "O",
+            "ONO",
+            "NO",
+            "NNO",
+        ]
+        index = round(self.wind_direction / 22.5) % 16
         return directions[index]
-    
+
     @property
     def wind_direction_name(self) -> str:
-        """Direction en toutes lettres."""
+        """Direction en toutes lettres - version affichage visuel."""
         if self.wind_direction is None:
             return "variable"
-        names = ["Nord", "Nord-Est", "Est", "Sud-Est", "Sud", 
-                 "Sud-Ouest", "Ouest", "Nord-Ouest"]
-        index = round(self.wind_direction / 45) % 8
+        names = [
+            "Nord",
+            "Nord-Nord-Est",
+            "Nord-Est",
+            "Est-Nord-Est",
+            "Est",
+            "Est-Sud-Est",
+            "Sud-Est",
+            "Sud-Sud-Est",
+            "Sud",
+            "Sud-Sud-Ouest",
+            "Sud-Ouest",
+            "Ouest-Sud-Ouest",
+            "Ouest",
+            "Ouest-Nord-Ouest",
+            "Nord-Ouest",
+            "Nord-Nord-Ouest",
+        ]
+        index = round(self.wind_direction / 22.5) % 16
+        return names[index]
+
+    @property
+    def wind_direction_tts(self) -> str:
+        """Direction en toutes lettres - version optimisée pour TTS."""
+        if self.wind_direction is None:
+            return "variable"
+        # Utilise "Este" et "Oueste" pour meilleure prononciation TTS
+        names = [
+            "Nord",
+            "Nord-Nord-Este",
+            "Nord-Este",
+            "Este-Nord-Este",
+            "Este",
+            "Este-Sud-Este",
+            "Sud-Este",
+            "Sud-Sud-Este",
+            "Sud",
+            "Sud-Sud-Oueste",
+            "Sud-Oueste",
+            "Oueste-Sud-Oueste",
+            "Oueste",
+            "Oueste-Nord-Oueste",
+            "Nord-Oueste",
+            "Nord-Nord-Oueste",
+        ]
+        index = round(self.wind_direction / 22.5) % 16
         return names[index]
 
 

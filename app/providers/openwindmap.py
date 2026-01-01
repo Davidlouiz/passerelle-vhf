@@ -204,7 +204,9 @@ class OpenWindMapProvider(WeatherProvider):
             if date_str:
                 # Gérer différents formats ISO - convertir en naive UTC
                 dt = datetime.fromisoformat(date_str.replace("Z", "+00:00"))
-                measurement_at = dt.replace(tzinfo=None)  # Retirer la timezone pour cohérence
+                measurement_at = dt.replace(
+                    tzinfo=None
+                )  # Retirer la timezone pour cohérence
             else:
                 measurement_at = datetime.utcnow()
 

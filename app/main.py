@@ -11,7 +11,16 @@ from fastapi.middleware.cors import CORSMiddleware
 from pathlib import Path
 
 from app.database import init_db
-from app.routers import auth, status, providers, channels, tts, tx_history, settings, users
+from app.routers import (
+    auth,
+    status,
+    providers,
+    channels,
+    tts,
+    tx_history,
+    settings,
+    users,
+)
 
 # Créer l'application
 app = FastAPI(

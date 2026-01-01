@@ -64,21 +64,21 @@ def degrees_to_name(degrees: float) -> str:
     #   - "Oueste" → si "Ouest" est mal prononcé
     #   - Ajouter des espaces pour ralentir : "Nord - Este"
     names = [
-        "Nord",              # 0° (360°)
-        "Nord-Nord-Este",    # 22.5°
-        "Nord-Este",         # 45°
-        "Este-Nord-Este",    # 67.5°
-        "Este",              # 90°
-        "Este-Sud-Este",     # 112.5°
-        "Sud-Este",          # 135°
-        "Sud-Sud-Este",      # 157.5°
-        "Sud",               # 180°
-        "Sud-Sud-Oueste",    # 202.5°
-        "Sud-Oueste",        # 225°
-        "Oueste-Sud-Oueste", # 247.5°
-        "Oueste",            # 270°
-        "Oueste-Nord-Oueste",# 292.5°
-        "Nord-Oueste",       # 315°
+        "Nord",  # 0° (360°)
+        "Nord-Nord-Este",  # 22.5°
+        "Nord-Este",  # 45°
+        "Este-Nord-Este",  # 67.5°
+        "Este",  # 90°
+        "Este-Sud-Este",  # 112.5°
+        "Sud-Este",  # 135°
+        "Sud-Sud-Este",  # 157.5°
+        "Sud",  # 180°
+        "Sud-Sud-Oueste",  # 202.5°
+        "Sud-Oueste",  # 225°
+        "Oueste-Sud-Oueste",  # 247.5°
+        "Oueste",  # 270°
+        "Oueste-Nord-Oueste",  # 292.5°
+        "Nord-Oueste",  # 315°
         "Nord-Nord-Oueste",  # 337.5°
     ]
     index = round((degrees % 360) / 22.5)

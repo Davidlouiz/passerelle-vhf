@@ -236,6 +236,7 @@ async function testMeasurement(channelId, providerId, stationId) {
                 'Mesure récupérée avec succès',
                 `<p><strong>📅 Date:</strong> ${date.toLocaleString('fr-FR')}</p>` +
                 `<p><strong>⏰ Âge:</strong> ${age} minute(s)</p>` +
+                `<p><strong>🧭 Direction:</strong> ${data.wind_direction_deg}° (${data.wind_direction_name})</p>` +
                 `<p><strong>💨 Vent moyen:</strong> ${data.wind_avg_kmh.toFixed(1)} km/h</p>` +
                 `<p><strong>💨 Rafales:</strong> ${data.wind_max_kmh.toFixed(1)} km/h</p>` +
                 (data.wind_min_kmh ? `<p><strong>💨 Vent mini:</strong> ${data.wind_min_kmh.toFixed(1)} km/h</p>` : ''),

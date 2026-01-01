@@ -159,7 +159,9 @@ def delete_credentials(
     )
 
     if not credential:
-        raise HTTPException(status_code=404, detail="Aucune clé configurée pour ce provider")
+        raise HTTPException(
+            status_code=404, detail="Aucune clé configurée pour ce provider"
+        )
 
     # Supprimer
     db.delete(credential)
@@ -228,6 +230,8 @@ class MeasurementResponse(BaseModel):
     wind_avg_kmh: float
     wind_max_kmh: float
     wind_min_kmh: Optional[float] = None
+    wind_direction_deg: Optional[float] = None
+    wind_direction_name: Optional[str] = None
 
 
 @router.post("/test-measurement", response_model=MeasurementResponse)
@@ -267,6 +271,8 @@ async def test_measurement(
             wind_avg_kmh=measurement.wind_avg_kmh,
             wind_max_kmh=measurement.wind_max_kmh,
             wind_min_kmh=measurement.wind_min_kmh,
+            wind_direction_deg=measurement.wind_direction,
+            wind_direction_name=measurement.wind_direction_name,
         )
 
     except Exception as e:

@@ -65,7 +65,7 @@ async function loadProviders() {
                         <button type="submit" class="btn btn-primary">Enregistrer</button>
                     </form>
                 `;
-                
+
                 // Réattacher l'event listener du formulaire
                 document.getElementById('ffvlForm').addEventListener('submit', saveFFVLKey);
             }
@@ -135,7 +135,7 @@ async function removeFFVLKey() {
 }
 
 // Toggle affichage du modèle d'email
-window.toggleEmailTemplate = function() {
+window.toggleEmailTemplate = function () {
     const template = document.getElementById('emailTemplate');
     if (template) {
         template.style.display = template.style.display === 'none' ? 'block' : 'none';

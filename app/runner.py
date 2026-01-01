@@ -124,7 +124,7 @@ class VHFRunner:
 
     def _cleanup_old_pending(self):
         """Marque les anciennes TX PENDING en ABORTED au démarrage.
-        
+
         Annule uniquement les TX dont planned_at est dans le passé de plus de 1h.
         Les TX récemment passées (< 1h) restent PENDING et seront exécutées.
         """
@@ -292,9 +292,10 @@ class VHFRunner:
 
         for offset in offsets:
             planned_at = measurement.measurement_at + timedelta(seconds=offset)
-            
+
             # Rendre le texte pour calculer tx_id
             from app.services.template import TemplateRenderer
+
             renderer = TemplateRenderer()
             rendered_text = renderer.render(
                 channel.template_text,
@@ -303,7 +304,7 @@ class VHFRunner:
                 wind_max_kmh=measurement.wind_max_kmh,
                 wind_min_kmh=measurement.wind_min_kmh or 0,
                 wind_direction_deg=measurement.wind_direction,
-                measurement_at=measurement.measurement_at
+                measurement_at=measurement.measurement_at,
             )
 
             # Calculer tx_id (idempotence)
@@ -371,7 +372,7 @@ class VHFRunner:
     ):
         """
         Exécute TOUTES les transmissions PENDING dont planned_at <= now.
-        
+
         Une par une, en marquant chaque TX avant de l'exécuter.
         """
         now = datetime.utcnow()
@@ -404,7 +405,9 @@ class VHFRunner:
                     db.commit()
                     continue
 
-                await self._execute_single_transmission(db, channel, settings, tx_record)
+                await self._execute_single_transmission(
+                    db, channel, settings, tx_record
+                )
 
                 # Pause inter-annonce (sauf pour la dernière)
                 if i < len(due_tx) - 1:
@@ -414,7 +417,8 @@ class VHFRunner:
 
             except Exception as e:
                 logger.error(
-                    f"Erreur lors de la TX {tx_record.tx_id[:12]}...: {e}", exc_info=True
+                    f"Erreur lors de la TX {tx_record.tx_id[:12]}...: {e}",
+                    exc_info=True,
                 )
                 tx_record.status = "FAILED"
                 tx_record.error_message = str(e)
@@ -436,19 +440,27 @@ class VHFRunner:
                     .order_by(TxHistory.planned_at)
                     .first()
                 )
-                channel.runtime.next_tx_at = next_pending.planned_at if next_pending else None
-                logger.debug(f"next_tx_at mis à jour pour {channel.name}: {channel.runtime.next_tx_at}")
+                channel.runtime.next_tx_at = (
+                    next_pending.planned_at if next_pending else None
+                )
+                logger.debug(
+                    f"next_tx_at mis à jour pour {channel.name}: {channel.runtime.next_tx_at}"
+                )
 
         db.commit()
 
     async def _execute_single_transmission(
-        self, db: Session, channel: Channel, settings: SystemSettings, tx_record: TxHistory
+        self,
+        db: Session,
+        channel: Channel,
+        settings: SystemSettings,
+        tx_record: TxHistory,
     ):
         """
         Exécute UNE transmission pour un canal.
 
         La TX est DÉJÀ créée dans tx_history avec status="PENDING".
-        
+
         Procédure :
         1. Vérifier mesure non périmée
         2. Obtenir/synthétiser l'audio (cache)
@@ -485,32 +497,31 @@ class VHFRunner:
             else:
                 # Synthétiser avec Piper
                 from app.database import DATA_DIR
-                
+
                 audio_path = str(
-                    DATA_DIR
-                    / "audio_cache"
-                    / f"tx_{tx_record.tx_id[:12]}.wav"
+                    DATA_DIR / "audio_cache" / f"tx_{tx_record.tx_id[:12]}.wav"
                 )
                 Path(audio_path).parent.mkdir(parents=True, exist_ok=True)
 
                 if self.tts_engine:
                     # Utiliser Piper pour synthétiser
                     logger.info(f"Synthèse TTS : '{tx_record.rendered_text[:50]}...'")
-                    
+
                     # Piper synthesize est synchrone, on l'exécute dans un thread
                     audio_path = await asyncio.to_thread(
                         self.tts_engine.synthesize,
                         tx_record.rendered_text,  # text
-                        channel.voice_id,          # voice_id
-                        audio_path,                # output_path
-                        voice_params               # params
+                        channel.voice_id,  # voice_id
+                        audio_path,  # output_path
+                        voice_params,  # params
                     )
-                    
+
                     logger.info(f"Audio synthétisé : {audio_path}")
                 else:
                     # Fallback : WAV mock si TTS indisponible
                     logger.warning("TTS indisponible, création audio mock")
                     import wave
+
                     with wave.open(audio_path, "wb") as wav:
                         wav.setnchannels(1)
                         wav.setsampwidth(2)
@@ -524,7 +535,9 @@ class VHFRunner:
                 tx_record.audio_path = audio_path
                 db.commit()
 
-            logger.info(f"TX {tx_record.tx_id[:12]}... pour {channel.name}, audio: {audio_path}")
+            logger.info(
+                f"TX {tx_record.tx_id[:12]}... pour {channel.name}, audio: {audio_path}"
+            )
 
             # ÉTAPE 3 : Re-vérifier non périmée JUSTE AVANT TX
             if is_measurement_expired(
@@ -548,7 +561,9 @@ class VHFRunner:
 
             db.commit()
 
-            logger.info(f"✅ TX {tx_record.tx_id[:12]}... envoyée avec succès pour {channel.name}")
+            logger.info(
+                f"✅ TX {tx_record.tx_id[:12]}... envoyée avec succès pour {channel.name}"
+            )
 
         except MeasurementExpiredError as e:
             # Mesure périmée : annuler la TX

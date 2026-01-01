@@ -1015,6 +1015,7 @@ code {
     font-size: 0.875rem;
     margin-top: 0.5rem;
 }
+
 /* Admin page - Password display */
 .modal#passwordModal .modal-content {
     padding: 2rem;
