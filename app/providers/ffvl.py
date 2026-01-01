@@ -32,6 +32,43 @@ class FFVLProvider(WeatherProvider):
         """Configure la clé API FFVL."""
         self._api_key = credentials.get("api_key")
 
+    @staticmethod
+    async def validate_api_key(api_key: str) -> bool:
+        """
+        Valide une clé API FFVL en testant un appel à l'endpoint /list.
+
+        Args:
+            api_key: Clé API à valider
+
+        Returns:
+            True si la clé est valide, False sinon
+
+        Note:
+            L'API FFVL retourne toujours un code HTTP 200, même avec une clé invalide.
+            Une clé valide retourne un JSON (liste de balises).
+            Une clé invalide retourne du HTML avec des messages d'erreur (error#1, error#2, error#3).
+        """
+        test_url = (
+            f"https://data.ffvl.fr/api/?base=balises&r=list&mode=json&key={api_key}"
+        )
+
+        try:
+            async with httpx.AsyncClient(timeout=10.0, follow_redirects=True) as client:
+                response = await client.get(test_url)
+
+                # Tenter de parser en JSON
+                try:
+                    data = response.json()
+                    # Une clé valide retourne une liste de balises
+                    return isinstance(data, list) and len(data) > 0
+                except Exception:
+                    # Si on ne peut pas parser le JSON, c'est du HTML donc clé invalide
+                    return False
+
+        except Exception:
+            # En cas d'erreur réseau, on considère la clé comme invalide
+            return False
+
     def resolve_station_from_url(self, url: str) -> StationInfo:
         """
         Extrait l'ID de station depuis une URL FFVL.

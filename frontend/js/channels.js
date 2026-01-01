@@ -1,9 +1,20 @@
 // Gestion des canaux
 let currentChannelId = null;
+let providersStatus = {};
 
 // Charger la liste des canaux
 async function loadChannels() {
     try {
+        // Charger les providers pour vérifier leur configuration
+        const providersResponse = await authenticatedFetch('/api/providers/');
+        if (providersResponse.ok) {
+            const providers = await providersResponse.json();
+            providersStatus = {};
+            providers.forEach(p => {
+                providersStatus[p.provider_id] = p.is_configured;
+            });
+        }
+
         const response = await authenticatedFetch('/api/channels/');
 
         if (response.ok) {
@@ -39,15 +50,24 @@ function displayChannels(channels) {
                 </tr>
             </thead>
             <tbody>
-                ${channels.map(ch => `
+                ${channels.map(ch => {
+        const providerConfigured = providersStatus[ch.provider_id] !== false;
+        const canBeEnabled = providerConfigured || ch.provider_id !== 'ffvl';
+
+        let statusBadge;
+        if (ch.is_enabled) {
+            statusBadge = '<span class="badge badge-success">Activé</span>';
+        } else if (!canBeEnabled) {
+            statusBadge = '<span class="badge badge-warning" title="Source non configurée">⚠️ Source manquante</span>';
+        } else {
+            statusBadge = '<span class="badge badge-danger">Désactivé</span>';
+        }
+
+        return `
                     <tr>
                         <td><strong>${ch.name}</strong></td>
                         <td>${ch.provider_id.toUpperCase()}</td>
-                        <td>
-                            <span class="badge ${ch.is_enabled ? 'badge-success' : 'badge-danger'}">
-                                ${ch.is_enabled ? 'Activé' : 'Désactivé'}
-                            </span>
-                        </td>
+                        <td>${statusBadge}</td>
                         <td>
                             <button onclick="testMeasurement(${ch.id}, '${ch.provider_id}', '${ch.station_id}')" class="btn btn-sm btn-outline-secondary" title="Tester récupération mesure">
                                 API
@@ -64,7 +84,7 @@ function displayChannels(channels) {
                             <button onclick="deleteChannel(${ch.id}, '${ch.name}')" class="btn btn-sm btn-danger">Supprimer</button>
                         </td>
                     </tr>
-                `).join('')}
+                `}).join('')}
             </tbody>
         </table>
     `;
@@ -158,9 +178,13 @@ async function toggleChannel(channelId) {
 
         if (response.ok) {
             loadChannels();
+        } else {
+            const error = await response.json();
+            showNotification('Erreur', error.detail || 'Impossible de changer le statut du canal', 'error');
         }
     } catch (err) {
         console.error('Erreur:', err);
+        showNotification('Erreur', 'Erreur lors du changement de statut', 'error');
     }
 }
 
@@ -635,6 +659,9 @@ async function saveFFVLKeyFromModal(e) {
         return;
     }
 
+    // Afficher indicateur de validation en cours
+    statusDiv.innerHTML = '<div class="info-message">⏳ Validation de la clé API en cours...</div>';
+
     try {
         const response = await authenticatedFetch('/api/providers/credentials', {
             method: 'POST',
@@ -648,20 +675,23 @@ async function saveFFVLKeyFromModal(e) {
         });
 
         if (response && response.ok) {
-            statusDiv.innerHTML = '<div class="success-message">✓ Clé API enregistrée avec succès</div>';
-            setTimeout(() => loadSourcesModal(), 1000);
+            statusDiv.innerHTML = '<div class="success-message">✓ Clé API validée et enregistrée avec succès</div>';
+            setTimeout(() => {
+                loadSourcesModal();
+                loadChannels(); // Recharger les canaux pour mettre à jour les badges
+            }, 1000);
         } else {
             const error = response ? await response.json() : {};
-            statusDiv.innerHTML = `<div class="error-message">Erreur: ${error.detail || 'Erreur inconnue'}</div>`;
+            statusDiv.innerHTML = `<div class="error-message">❌ ${error.detail || 'Erreur inconnue'}</div>`;
         }
     } catch (err) {
-        statusDiv.innerHTML = '<div class="error-message">Erreur de connexion au serveur</div>';
+        statusDiv.innerHTML = '<div class="error-message">❌ Erreur de connexion au serveur</div>';
     }
 }
 
 // Retirer la clé FFVL depuis la modal
 async function removeFFVLKeyFromModal() {
-    if (!confirm('Êtes-vous sûr de vouloir retirer la clé API FFVL ?')) {
+    if (!confirm('Êtes-vous sûr de vouloir retirer la clé API FFVL ?\n\nTous les canaux FFVL actifs seront automatiquement désactivés.')) {
         return;
     }
 
@@ -671,14 +701,17 @@ async function removeFFVLKeyFromModal() {
         });
 
         if (response && response.ok) {
+            const result = await response.json();
+            showNotification('Succès', result.message, 'success');
             loadSourcesModal(); // Recharger pour afficher le formulaire
+            loadChannels(); // Recharger les canaux pour afficher les changements de statut
         } else {
             const error = response ? await response.json() : {};
-            alert(`Erreur: ${error.detail || 'Impossible de retirer la clé'}`);
+            showNotification('Erreur', error.detail || 'Impossible de retirer la clé', 'error');
         }
     } catch (err) {
         console.error('Erreur:', err);
-        alert('Erreur de connexion au serveur');
+        showNotification('Erreur', 'Erreur de connexion au serveur', 'error');
     }
 }
 

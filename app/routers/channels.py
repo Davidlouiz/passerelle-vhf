@@ -309,6 +309,22 @@ def toggle_channel(
     if not channel:
         raise HTTPException(status_code=404, detail="Canal non trouvé")
 
+    # Si on tente d'activer le canal, vérifier que le provider est configuré
+    if not channel.is_enabled:  # Passage de désactivé à activé
+        from app.models import ProviderCredential
+
+        # Vérifier si le provider nécessite une authentification
+        if channel.provider_id == "ffvl":
+            credential = (
+                db.query(ProviderCredential).filter_by(provider_id="ffvl").first()
+            )
+
+            if not credential or not credential.credentials_json.get("api_key"):
+                raise HTTPException(
+                    status_code=400,
+                    detail="Impossible d'activer ce canal : la source FFVL n'est pas configurée. Veuillez d'abord ajouter votre clé API dans la section 'Sources météo'.",
+                )
+
     channel.is_enabled = not channel.is_enabled
     channel.updated_at = datetime.datetime.now(datetime.timezone.utc)
 

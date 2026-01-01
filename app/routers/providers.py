@@ -103,6 +103,18 @@ def update_credentials(
         .first()
     )
 
+    # Valider la clé API FFVL si fournie
+    if data.provider_id == "ffvl" and data.api_key is not None:
+        # Import asyncio pour exécuter la validation async
+        import asyncio
+
+        is_valid = asyncio.run(FFVLProvider.validate_api_key(data.api_key))
+        if not is_valid:
+            raise HTTPException(
+                status_code=400,
+                detail="Clé API FFVL invalide. Vérifiez votre clé ou contactez informatique@ffvl.fr",
+            )
+
     # Construire le dict de credentials
     credentials_dict = {}
     if data.api_key is not None:
@@ -146,7 +158,7 @@ def delete_credentials(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user),
 ):
-    """Supprime les credentials d'un provider."""
+    """Supprime les credentials d'un provider et désactive automatiquement les canaux concernés."""
 
     if provider_id not in ["ffvl", "openwindmap"]:
         raise HTTPException(status_code=400, detail="Provider inconnu")
@@ -163,21 +175,38 @@ def delete_credentials(
             status_code=404, detail="Aucune clé configurée pour ce provider"
         )
 
-    # Supprimer
+    # Désactiver tous les canaux qui utilisent ce provider
+    from app.models import Channel
+
+    affected_channels = (
+        db.query(Channel)
+        .filter(Channel.provider_id == provider_id, Channel.is_enabled == True)
+        .all()
+    )
+
+    for channel in affected_channels:
+        channel.is_enabled = False
+        channel.updated_at = datetime.datetime.now(datetime.timezone.utc)
+
+    # Supprimer le credential
     db.delete(credential)
 
     # Audit log
     audit = AuditLog(
         user_id=current_user.id,
         action=f"DELETE_PROVIDER_CREDENTIALS",
-        details_json=f"Provider: {provider_id}",
+        details_json=f"Provider: {provider_id}, {len(affected_channels)} canaux désactivés",
         ip_address="127.0.0.1",  # TODO: récupérer vraie IP
     )
     db.add(audit)
 
     db.commit()
 
-    return {"message": "Credentials supprimés avec succès"}
+    message = "Credentials supprimés avec succès"
+    if affected_channels:
+        message += f" ({len(affected_channels)} canal(ux) désactivé(s) automatiquement)"
+
+    return {"message": message}
 
 
 @router.post("/resolve-station", response_model=StationResolutionResponse)

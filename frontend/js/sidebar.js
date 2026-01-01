@@ -7,7 +7,6 @@
 const NAV_ITEMS = [
     { href: '/static/dashboard.html', icon: '📊', label: 'Tableau de bord', page: 'dashboard' },
     { href: '/static/channels.html', icon: '📡', label: 'Canaux', page: 'channels' },
-    { href: '/static/providers.html', icon: '🌐', label: 'Sources', page: 'providers' },
     { href: '/static/settings.html', icon: '⚙️', label: 'Paramètres', page: 'settings' },
     { href: '/static/admin.html', icon: '👤', label: 'Administration', page: 'admin' }
 ];
