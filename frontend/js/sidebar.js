@@ -29,7 +29,7 @@ function generateSidebar(currentPage) {
     return `
         <aside class="sidebar">
             <div class="sidebar-header">
-                <h2>📻 Passerelle VHF</h2>
+                <h2><img src="/static/favicon.svg" alt="VHF" style="width: 1.1em; height: 1.1em; vertical-align: -0.15em; margin-right: 0.3em;"> Passerelle VHF</h2>
             </div>
             <nav class="sidebar-nav">
                 ${navItems}
