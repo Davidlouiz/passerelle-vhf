@@ -657,7 +657,7 @@ class VHFRunner:
             logger.warning(f"TX annulée pour {channel.name} : {e}")
             tx_record.status = "ABORTED"
             tx_record.error_message = str(e)
-            
+
             # Recalculer next_tx_at
             next_pending = (
                 db.query(TxHistory)
@@ -680,7 +680,7 @@ class VHFRunner:
             tx_record.status = "FAILED"
             tx_record.error_message = str(e)
             channel.runtime.last_error = str(e)
-            
+
             # Recalculer next_tx_at
             next_pending = (
                 db.query(TxHistory)
