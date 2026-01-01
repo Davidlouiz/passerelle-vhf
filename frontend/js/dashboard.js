@@ -38,15 +38,6 @@ function updateDashboard(data) {
     document.getElementById('active-channels').textContent =
         `${data.active_channels} / ${data.total_channels}`;
 
-    const statusBadge = document.getElementById('system-status');
-    if (data.master_enabled) {
-        statusBadge.textContent = 'Émission activée';
-        statusBadge.className = 'badge badge-success';
-    } else {
-        statusBadge.textContent = 'Émission désactivée';
-        statusBadge.className = 'badge badge-danger';
-    }
-
     // Stats TX 24h
     if (data.tx_stats_24h) {
         document.getElementById('tx-total').textContent = data.tx_stats_24h.total;

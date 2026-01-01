@@ -4,7 +4,7 @@ Configuration et connexion à la base de données SQLite.
 
 from sqlalchemy import create_engine
 from sqlalchemy.orm import sessionmaker, Session
-from sqlalchemy.pool import StaticPool
+from sqlalchemy.pool import NullPool
 from contextlib import contextmanager
 from pathlib import Path
 from typing import Generator
@@ -29,7 +29,7 @@ DATABASE_URL = f"sqlite:///{DATA_DIR}/vhf-balise.db"
 engine = create_engine(
     DATABASE_URL,
     connect_args={"check_same_thread": False},
-    poolclass=StaticPool,
+    poolclass=NullPool,  # Pas de pool pour éviter les conflits multi-threads
     echo=False,  # True pour debug SQL
 )
 

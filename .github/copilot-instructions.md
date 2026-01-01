@@ -55,8 +55,10 @@ Un SEUL PTT pour tous canaux. Si N annonces dues simultanément : shuffle ordre 
 ## Architecture clé
 
 ### Deux processus indépendants
-1. **Web** (`app/main.py`) : FastAPI (uvicorn) sert `/api/*` + `static/*` (frontend HTML/CSS/JS)
-2. **Runner** (`app/runner.py`) : Boucle asyncio (`async def run()`) qui poll providers → planifie TX → exécute avec PTT. Un seul runner actif à la fois.
+1. **Web** (`app/main.py`) : FastAPI (uvicorn) sert `/api/*` + `/static/*` (frontend HTML/CSS/JS)
+   - Initialise DB + moteur TTS au démarrage (`@app.on_event("startup")`)
+   - Route racine `/` sert `frontend/index.html`
+2. **Runner** (`app/runner.py`) : Boucle asyncio (`async def run()`) qui poll providers → planifie TX → exécute avec PTT. Un seul runner actif à la fois (verrou PID).
 
 ### Base de données ([app/models.py](app/models.py))
 **Tables critiques** :
@@ -136,11 +138,12 @@ Variables : `{station_name}`, `{wind_avg_kmh}`, `{wind_max_kmh}`, `{wind_directi
 **Prononciation TTS** : "Este" au lieu de "Est" (liaison phonétique), "Oueste" au lieu de "Ouest"
 
 ### Frontend statique
-Fichiers dans `frontend/` servis directement par FastAPI (`app.mount("/static", StaticFiles(directory="frontend"))`). Pas de framework JS - vanilla uniquement.
+Fichiers dans `frontend/` servis par FastAPI via `app.mount("/static", StaticFiles(directory=frontend_path))` - URLs accédées via `/static/*`. Pas de framework JS - vanilla uniquement.
 
 **Auth JWT** : Token stocké dans `localStorage`, envoyé via header `Authorization: Bearer <token>`  
 **Helper fetch** : Utiliser `authenticatedFetch(url, options)` (dans [common.js](frontend/js/common.js)) au lieu de `fetch()` - gère auto header + redirect 401  
-**Workflow modif frontend** : Éditer `frontend/*` directement → reload navigateur (pas de copie vers `static/` nécessaire)
+**Workflow modif frontend** : Éditer `frontend/*` directement → reload navigateur (pas de rebuild requis)  
+**CORS** : Configuré en mode ouvert (`allow_origins=["*"]`) pour dev - restreindre en production
 
 ## Authentification ([app/auth.py](app/auth.py))
 

@@ -48,20 +48,19 @@ function generateSidebar(currentPage) {
  * À appeler au chargement de chaque page
  */
 function initSidebar(currentPage) {
+    console.log('[SIDEBAR] Initialisation pour page:', currentPage);
+
     // Trouver le conteneur de l'app
     const appContainer = document.querySelector('.app-container');
 
     if (appContainer) {
         // Insérer la sidebar au début
         appContainer.insertAdjacentHTML('afterbegin', generateSidebar(currentPage));
+        console.log('[SIDEBAR] Sidebar insérée');
 
-        // Gérer le bouton de déconnexion
-        const logoutBtn = document.getElementById('logoutBtn');
-        if (logoutBtn) {
-            logoutBtn.addEventListener('click', () => {
-                localStorage.removeItem('token');
-                window.location.href = '/static/index.html';
-            });
-        }
+        // NE PAS gérer le bouton de déconnexion ici
+        // C'est géré par common.js pour éviter les conflits
+    } else {
+        console.error('[SIDEBAR] Conteneur .app-container non trouvé !');
     }
 }
