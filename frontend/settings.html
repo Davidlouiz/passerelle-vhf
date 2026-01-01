@@ -29,13 +29,21 @@
                     <div class="card-body">
                         <div class="stats-grid" style="grid-template-columns: 1fr 1fr;">
                             <div class="stat-item">
-                                <div class="stat-label">📡 Réception</div>
+                                <div class="stat-label"
+                                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <img src="/static/icons/reception.svg" width="160" height="160" alt="">
+                                    <span>Réception</span>
+                                </div>
                                 <div id="runnerStatus" class="stat-value">
                                     <span class="badge badge-secondary">Chargement...</span>
                                 </div>
                             </div>
                             <div class="stat-item">
-                                <div class="stat-label">📻 Émission</div>
+                                <div class="stat-label"
+                                    style="display: flex; flex-direction: column; align-items: center; gap: 0.5rem;">
+                                    <img src="/static/icons/emission.svg" width="160" height="160" alt="">
+                                    <span>Émission</span>
+                                </div>
                                 <div id="masterStatus" class="stat-value">
                                     <span class="badge badge-secondary">Chargement...</span>
                                 </div>
@@ -51,11 +59,11 @@
                                 Chargement...
                             </button>
                         </div>
-                        <p class="text-muted" style="margin-top: 2rem;">
-                            <strong>⚠️ Important :</strong> La <strong>Réception</strong> récupère les mesures météo
-                            auprès des sources.
-                            L'<strong>Émission</strong> contrôle les transmissions radio VHF.
-                            Les deux doivent être activés pour que le système fonctionne.
+                        <p class="text-muted" style="margin-top: 2rem; line-height: 1.8;">
+                            <strong>⚠️ Important :</strong><br>
+                            • La <strong>Réception</strong> récupère les mesures auprès des sources.<br>
+                            • L'<strong>Émission</strong> gère les transmissions radio VHF.<br>
+                            • Les deux doivent être activés pour que le système fonctionne.
                         </p>
                     </div>
                 </div>

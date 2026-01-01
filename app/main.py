@@ -76,7 +76,9 @@ if frontend_path.exists():
     @app.get("/favicon.ico")
     async def serve_favicon():
         """Redirige /favicon.ico vers /static/favicon.svg."""
-        return FileResponse(str(frontend_path / "favicon.svg"), media_type="image/svg+xml")
+        return FileResponse(
+            str(frontend_path / "favicon.svg"), media_type="image/svg+xml"
+        )
 
 
 # Endpoint de santé

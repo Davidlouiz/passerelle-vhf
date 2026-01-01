@@ -18,25 +18,25 @@ function updateDashboard(data) {
     // Statut réception (runner)
     const runnerStatusEl = document.getElementById('runner-status');
     if (data.runner_status === 'running') {
-        runnerStatusEl.textContent = '✓ Activé';
-        runnerStatusEl.className = 'stat-value text-success';
+        runnerStatusEl.innerHTML = '<span class="badge badge-success">✓ Activé</span>';
+        runnerStatusEl.className = 'stat-value';
     } else if (data.runner_status === 'stopped') {
-        runnerStatusEl.textContent = '✗ Désactivé';
-        runnerStatusEl.className = 'stat-value text-danger';
+        runnerStatusEl.innerHTML = '<span class="badge badge-danger">✗ Désactivé</span>';
+        runnerStatusEl.className = 'stat-value';
     } else {
-        runnerStatusEl.textContent = '? Inconnu';
-        runnerStatusEl.className = 'stat-value text-secondary';
+        runnerStatusEl.innerHTML = '<span class="badge badge-secondary">? Inconnu</span>';
+        runnerStatusEl.className = 'stat-value';
     }
 
     // Statut émission
-    document.getElementById('master-enabled').textContent =
-        data.master_enabled ? '✓ Activé' : '✗ Désactivé';
-
-    document.getElementById('master-enabled').className =
-        data.master_enabled ? 'stat-value text-success' : 'stat-value text-danger';
-
-    document.getElementById('active-channels').textContent =
-        `${data.active_channels} / ${data.total_channels}`;
+    const masterEnabledEl = document.getElementById('master-enabled');
+    if (data.master_enabled) {
+        masterEnabledEl.innerHTML = '<span class="badge badge-success">✓ Activé</span>';
+        masterEnabledEl.className = 'stat-value';
+    } else {
+        masterEnabledEl.innerHTML = '<span class="badge badge-danger">✗ Désactivé</span>';
+        masterEnabledEl.className = 'stat-value';
+    }
 
     // Stats TX 24h
     if (data.tx_stats_24h) {

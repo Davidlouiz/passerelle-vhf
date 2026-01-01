@@ -80,11 +80,11 @@ function updateEmissionButton(enabled) {
 
     if (enabled) {
         toggleBtn.textContent = 'Désactiver l\'émission';
-        toggleBtn.className = 'btn btn-danger';
+        toggleBtn.className = 'btn btn-secondary';
         toggleBtn.disabled = false;
     } else {
         toggleBtn.textContent = 'Activer l\'émission';
-        toggleBtn.className = 'btn btn-success';
+        toggleBtn.className = 'btn btn-secondary';
         toggleBtn.disabled = false;
     }
 }
@@ -117,12 +117,12 @@ function updateRunnerStatus(status) {
     if (status === 'running') {
         statusEl.innerHTML = '<span class="badge badge-success">✓ Activé</span>';
         toggleBtn.textContent = 'Désactiver la réception';
-        toggleBtn.className = 'btn btn-danger';
+        toggleBtn.className = 'btn btn-secondary';
         toggleBtn.disabled = false;
     } else if (status === 'stopped') {
         statusEl.innerHTML = '<span class="badge badge-danger">✗ Désactivé</span>';
         toggleBtn.textContent = 'Activer la réception';
-        toggleBtn.className = 'btn btn-success';
+        toggleBtn.className = 'btn btn-secondary';
         toggleBtn.disabled = false;
     } else {
         statusEl.innerHTML = '<span class="badge badge-secondary">? État inconnu</span>';
