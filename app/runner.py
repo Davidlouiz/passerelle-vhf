@@ -651,9 +651,22 @@ class VHFRunner:
 
 async def main():
     """Point d'entrée principal."""
+    # Vérifier option --force pour forcer le démarrage
+    force_start = "--force" in sys.argv
+    
+    if force_start:
+        logger.warning("⚠️ Démarrage forcé avec --force : suppression du verrou PID existant")
+        if PID_FILE.exists():
+            old_pid = PID_FILE.read_text().strip()
+            PID_FILE.unlink()
+            logger.warning(f"Ancien PID {old_pid} supprimé de force")
+    
     # Acquérir le verrou PID avant toute chose
     if not acquire_pid_lock():
-        logger.error("Impossible de démarrer : un autre runner est déjà actif.")
+        logger.error(
+            "Impossible de démarrer : un autre runner est déjà actif.\n"
+            "Si vous êtes sûr qu'aucun runner ne tourne, utilisez : python -m app.runner --force"
+        )
         sys.exit(1)
     
     runner = VHFRunner()

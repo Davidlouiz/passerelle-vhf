@@ -216,12 +216,40 @@ tail -f /opt/vhf-balise/data/logs/runner.log
    sudo journalctl -u vhf-balise-web -n 50
    ```
 
-2. **Pas d'annonces radio** :
+2. **Le runner refuse de démarrer (erreur "Un autre runner tourne déjà")** :
+   
+   **Diagnostic** : Vérifier si un processus runner tourne réellement :
+   ```bash
+   pgrep -fa "python.*app.runner"
+   ```
+   
+   **Solution 1** : Si des processus sont listés, les arrêter :
+   ```bash
+   sudo systemctl stop vhf-balise-runner
+   # Ou en manuel : pkill -TERM -f "python.*app.runner"
+   ```
+   
+   **Solution 2** : Si aucun processus n'est listé mais l'erreur persiste (verrou PID bloqué) :
+   ```bash
+   # Option A : Déblocage automatique via script
+   cd /opt/vhf-balise
+   sudo ./unlock_runner.sh
+   
+   # Option B : Déblocage manuel
+   sudo rm -f /opt/vhf-balise/data/runner.pid
+   
+   # Option C : Démarrage forcé (en développement uniquement)
+   python -m app.runner --force
+   ```
+   
+   ℹ️ **Note** : Le système nettoie normalement automatiquement les verrous obsolètes. Si ce problème persiste, vérifiez les permissions sur le dossier `data/`.
+
+3. **Pas d'annonces radio** :
    - Vérifiez dans l'interface web que "Émissions autorisées" est activé
    - Consultez l'historique des émissions dans l'interface
    - Vérifiez les logs : `sudo journalctl -u vhf-balise-runner -f`
 
-3. **Connexion perdue à l'interface web** :
+4. **Connexion perdue à l'interface web** :
    ```bash
    sudo systemctl restart vhf-balise-web
    ```
