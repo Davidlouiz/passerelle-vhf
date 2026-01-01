@@ -159,19 +159,22 @@ Fichiers dans `frontend/` servis par FastAPI via `app.mount("/static", StaticFil
 **Runner** : Logger erreurs + marquer TX status="FAILED" avec error_message - JAMAIS propager exception qui stopperait le runner
 
 ## Tests critiques
-(via `compute_tx_id()` dans [app/utils.py](app/utils.py))  
-**Tests async** : Utiliser `@pytest.mark.asyncio` + `async def test_*()` pour tests async (transmission, providers) 
+
+**Configuration** : [pytest.ini](pytest.ini) active `asyncio_mode=auto` - pas besoin de `@pytest.mark.asyncio` explicite  
+**Fixture commune** : [tests/conftest.py](tests/conftest.py) fournit `db_session` (SQLite in-memory + auto-cleanup)  
+**Tests async** : `async def test_*()` détecté automatiquement (transmission, providers)  
 **Fail-safe** : [tests/test_fail_safe_integration.py](tests/test_fail_safe_integration.py) - vérifie qu'aucune TX si mesure périmée OU commit échoue  
-**Idempotence** : [tests/test_idempotence.py](tests/test_idempotence.py) - tx_id unique empêche duplications  
-**Tous** : `pytest tests/ -v` (utilise MockPTTController, DB SQLite in-memory)  
-**Fixture commune** : [tests/conftest.py](tests/conftest.py) fournit `db_session` (SQLite in-memory + auto-cleanup)
+**Idempotence** : [tests/test_idempotence.py](tests/test_idempotence.py) - `tx_id` unique (via `compute_tx_id()` dans [app/utils.py](app/utils.py)) empêche duplications  
+**PID Lock** : [tests/test_pid_lock.py](tests/test_pid_lock.py) - teste acquisition/libération verrou + gestion PIDs obsolètes  
+**Tous** : `pytest tests/ -v` (utilise MockPTTController, DB in-memory) OU `pytest tests/ -v --cov` pour couverture HTML
 
 ## Débogage & Logs
 
 **Logs runner** : `./data/logs/runner.log` ou `journalctl -u vhf-balise-runner -f` (prod)  
 **Logs web** : `journalctl -u vhf-balise-web -f` (prod) ou stdout terminal dev  
 **SQL debug** : Mettre `echo=True` dans [app/database.py](app/database.py#L30) `create_engine()`  
-**Audio dev** : Cache TTS dans `./data/audio_cache/` - supprimer pour forcer régénération test
+**Audio dev** : Cache TTS dans `./data/audio_cache/` - supprimer pour forcer régénération test  
+**Verrou PID bloqué** : Si runner refuse démarrage alors qu'aucun processus ne tourne : `./unlock_runner.sh` (vérifie PIDs actifs + supprime `data/runner.pid` si obsolète)
 
 ## Production (Raspberry Pi)
 

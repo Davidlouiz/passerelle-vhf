@@ -1071,3 +1071,53 @@ code {
     padding: 0.75rem 1.5rem;
     font-size: 1rem;
 }
+
+/* Sections d'aide */
+.help-section .card-body {
+    padding: 2rem 2.5rem;
+}
+
+.help-content {
+    max-width: 900px;
+}
+
+.help-subtitle {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1.125rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.help-subtitle:not(:first-child) {
+    margin-top: 2rem;
+}
+
+.help-list {
+    list-style-type: disc;
+    margin-left: 2rem;
+    margin-bottom: 0;
+    line-height: 1.5;
+    color: var(--text-color);
+}
+
+.help-list li {
+    margin-bottom: 0.75rem;
+    padding-left: 0.5rem;
+}
+
+.help-list li:last-child {
+    margin-bottom: 0;
+}
+
+.help-list strong {
+    color: var(--text-color);
+    font-weight: 600;
+}
+
+.help-text {
+    margin-left: 2rem;
+    margin-bottom: 0;
+    line-height: 1.8;
+    color: var(--text-color);
+}
