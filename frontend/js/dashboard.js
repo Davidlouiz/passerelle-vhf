@@ -65,7 +65,7 @@ function updateDashboard(data) {
                         <tr>
                             <td><strong>${escapeHtml(ch.name)}</strong></td>
                             <td>
-                                <span class="badge ${ch.is_enabled ? 'badge-success' : 'badge-secondary'}">
+                                <span class="badge ${ch.is_enabled ? 'badge-success' : 'badge-warning'}">
                                     ${ch.is_enabled ? 'Actif' : 'Inactif'}
                                 </span>
                             </td>
